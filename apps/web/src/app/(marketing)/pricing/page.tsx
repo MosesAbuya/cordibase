@@ -1,119 +1,96 @@
 import Link from "next/link";
-import { CheckCircle2, Info } from "lucide-react";
+import { Check } from "lucide-react";
+import BlurText from "@/components/marketing/BlurText";
+import { db } from "@/lib/db";
+import { platformSchema } from "@cordibase/shared-db";
+import ElectricBorder from "@/components/marketing/ElectricBorder";
 
-export default function PricingPage() {
+export default async function PricingPage() {
+  const packages = await db.select().from(platformSchema.pricingPackage).orderBy(platformSchema.pricingPackage.order);
+
   return (
-    <div className="pt-32 pb-24 bg-linen">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="text-center max-w-2xl mx-auto mb-16">
-          <h1 className="text-5xl md:text-6xl font-display text-ink tracking-tight mb-6">Simple, transparent <span className="italic">pricing</span>.</h1>
-          <p className="text-xl text-ink/70 leading-relaxed">
-            No per-user fees. No hidden costs. Pay a flat monthly rate for the modules your business actually uses.
+    <>
+      {/* Hero */}
+      <section className="pt-32 pb-24 px-6 border-b border-black/5 dark:border-white/15 relative overflow-hidden transition-colors duration-300">
+        <div className="absolute inset-0 pointer-events-none opacity-20">
+           <div className="absolute top-0 right-1/4 w-96 h-96 bg-lime_green rounded-full blur-[120px]" />
+           <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-forest_green rounded-full blur-[120px]" />
+        </div>
+        <div className="max-w-[1200px] mx-auto text-center relative z-10">
+          <p className="text-sm font-semibold uppercase tracking-widest mb-4 text-lime_green">Plans & Pricing</p>
+          <h1 className="font-bold text-slate-900 dark:text-white leading-[1.1] mb-6 text-5xl md:text-7xl transition-colors duration-300">
+            <BlurText text="Scale without limits." className="inline-block" />
+          </h1>
+          <p className="text-slate-500 dark:text-white/50 text-xl max-w-2xl mx-auto leading-relaxed transition-colors duration-300">
+            Simple, transparent pricing. Start for free, upgrade when you need more power.
           </p>
         </div>
+      </section>
 
-        {/* Bundle Banner */}
-        <div className="bg-thread/5 border border-thread/20 rounded-[18px] p-8 mb-16 max-w-3xl mx-auto flex flex-col md:flex-row items-start gap-6 shadow-resting">
-          <div className="w-12 h-12 rounded-full bg-thread/10 flex items-center justify-center shrink-0">
-            <Info className="text-thread" size={24} />
-          </div>
-          <div>
-            <h4 className="text-xl font-display text-ink mb-2">The Complete OS Bundle</h4>
-            <p className="text-ink/70 leading-relaxed">
-              Subscribe to all three modules (CRM, Accounting, HRM) and save 15% automatically on your monthly bill. Unlock the full power of cross-module synchronization.
-            </p>
+      {/* Pricing Cards (Staggered Theme) */}
+      <section className="py-24 px-6 border-b border-black/5 dark:border-white/15 relative bg-slate-50 dark:bg-transparent transition-colors duration-300">
+        <div className="max-w-[1200px] mx-auto">
+          <div className="flex flex-col lg:flex-row justify-center gap-6 lg:gap-8 items-end lg:h-[550px]">
+            {packages.map((pkg, idx) => {
+               const isPopular = pkg.isPopular;
+               const delay = idx * 100;
+               return (
+                  <div key={pkg.id} className={`w-full lg:w-1/3 relative transition-all duration-500 hover:-translate-y-4`} style={{ animationDelay: `${delay}ms` }}>
+                    {/* The staggered floating header tab */}
+                    <div className={`absolute -top-8 left-1/2 -translate-x-1/2 w-[85%] py-3 rounded-xl z-20 text-center font-bold tracking-widest uppercase shadow-xl border border-white/10 backdrop-blur-md transform -skew-x-6 ${isPopular ? 'bg-white text-lime_green' : 'bg-lime_green text-evergreen'}`}>
+                       <span className="block transform skew-x-6">{pkg.name}</span>
+                    </div>
+
+                    {/* Card Body */}
+                    <div className={`pt-12 pb-8 px-8 rounded-3xl h-full border ${isPopular ? 'bg-gradient-to-b from-forest_green to-[#122812] border-lime_green/50 text-white min-h-[500px]' : 'bg-white dark:bg-black/60 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white min-h-[460px]'} shadow-2xl transition-colors duration-300 flex flex-col items-center text-center`}>
+                       
+                       <p className={`text-sm mb-4 ${isPopular ? 'text-white/80' : 'text-slate-500 dark:text-white/50'}`}>
+                         {pkg.description || "Perfect for your business."}
+                       </p>
+
+                       <div className="flex items-start justify-center mb-8">
+                         <span className="text-2xl font-medium mt-2">$</span>
+                         <span className="text-6xl font-black">{pkg.price}</span>
+                         <span className={`text-sm font-medium mt-auto mb-2 ml-1 ${isPopular ? 'text-white/60' : 'text-slate-400 dark:text-white/40'}`}>/mo</span>
+                       </div>
+
+                       <div className="w-full flex-1 mb-8 text-sm">
+                         <p className={`mb-4 ${isPopular ? 'text-white' : 'text-slate-600 dark:text-white/70'} leading-relaxed text-left`}>
+                           Includes these features:
+                         </p>
+                         <ul className="space-y-4 text-left">
+                           {Array.isArray(pkg.features) && pkg.features.map((feat: any, i: number) => (
+                             <li key={i} className="flex items-center gap-3">
+                               <Check className={`w-4 h-4 shrink-0 ${isPopular ? 'text-lime_green' : 'text-lime_green'}`} />
+                               <span className={isPopular ? 'text-white/90' : 'text-slate-700 dark:text-white/70'}>{String(feat)}</span>
+                             </li>
+                           ))}
+                         </ul>
+                       </div>
+
+                       <Link href="/register" className={`w-full py-4 rounded-full font-bold uppercase tracking-widest text-sm transition-all ${isPopular ? 'bg-white text-evergreen hover:bg-slate-100 shadow-[0_0_20px_rgba(255,255,255,0.3)]' : 'bg-lime_green text-evergreen hover:bg-lime_green/90 shadow-[0_4px_14px_rgba(49,203,0,0.3)]'}`}>
+                          Select
+                       </Link>
+                    </div>
+                  </div>
+               );
+            })}
           </div>
         </div>
+      </section>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-24">
-          {/* CRM Card */}
-          <div className="bg-cardsurface border border-ink/5 rounded-[18px] flex flex-col overflow-hidden shadow-resting card-3d">
-            <div className="p-8 border-b border-ink/5">
-              <h3 className="text-2xl font-display text-ink mb-2">CRM</h3>
-              <p className="text-ink/60 text-sm mb-6">Manage contacts and sales pipelines.</p>
-              <div className="flex items-end gap-1 mb-8">
-                <span className="text-4xl font-mono font-bold text-ink">$20</span>
-                <span className="text-ink/50 mb-1">/mo</span>
-              </div>
-              <Link href="/register" className="block w-full py-3 bg-transparent hover:bg-ink/5 text-ink font-medium rounded-full text-center border border-ink transition-colors">
-                Start Free Trial
-              </Link>
-            </div>
-            <div className="p-8 flex-1 bg-cardsurface">
-              <ul className="space-y-4">
-                <li className="flex items-start gap-4 text-ink/80"><CheckCircle2 className="text-thread shrink-0" size={20} /> <span>Unlimited Contacts</span></li>
-                <li className="flex items-start gap-4 text-ink/80"><CheckCircle2 className="text-thread shrink-0" size={20} /> <span>Custom Deal Stages</span></li>
-                <li className="flex items-start gap-4 text-ink/80"><CheckCircle2 className="text-thread shrink-0" size={20} /> <span>Sales Forecasting</span></li>
-                <li className="flex items-start gap-4 text-ink/80"><CheckCircle2 className="text-thread shrink-0" size={20} /> <span>Accounting Integration</span></li>
-              </ul>
-            </div>
-          </div>
-
-          {/* Accounting Card */}
-          <div className="bg-cardsurface border border-marigold/30 rounded-[18px] flex flex-col overflow-hidden relative shadow-hover card-3d z-10 transform md:-translate-y-4">
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-marigold text-ink text-xs font-bold uppercase tracking-wider py-1 px-4 rounded-b-lg">
-              Most Popular
-            </div>
-            <div className="p-8 border-b border-ink/5 mt-4">
-              <h3 className="text-2xl font-display text-ink mb-2">Accounting</h3>
-              <p className="text-ink/60 text-sm mb-6">Invoices, expenses, and ledgers.</p>
-              <div className="flex items-end gap-1 mb-8">
-                <span className="text-4xl font-mono font-bold text-ink">$30</span>
-                <span className="text-ink/50 mb-1">/mo</span>
-              </div>
-              <Link href="/register" className="block w-full py-3 bg-thread hover:bg-thread-dark text-cardsurface font-medium rounded-full text-center transition-colors shadow-resting hover:shadow-hover hover:-translate-y-[2px]">
-                Start Free Trial
-              </Link>
-            </div>
-            <div className="p-8 flex-1 bg-cardsurface">
-              <ul className="space-y-4">
-                <li className="flex items-start gap-4 text-ink/80"><CheckCircle2 className="text-marigold shrink-0" size={20} /> <span>Professional Invoices</span></li>
-                <li className="flex items-start gap-4 text-ink/80"><CheckCircle2 className="text-marigold shrink-0" size={20} /> <span>Expense Tracking</span></li>
-                <li className="flex items-start gap-4 text-ink/80"><CheckCircle2 className="text-marigold shrink-0" size={20} /> <span>Double-entry Ledger</span></li>
-                <li className="flex items-start gap-4 text-ink/80"><CheckCircle2 className="text-marigold shrink-0" size={20} /> <span>CRM & HRM Integration</span></li>
-              </ul>
-            </div>
-          </div>
-
-          {/* HRM Card */}
-          <div className="bg-cardsurface border border-ink/5 rounded-[18px] flex flex-col overflow-hidden shadow-resting card-3d">
-            <div className="p-8 border-b border-ink/5">
-              <h3 className="text-2xl font-display text-ink mb-2">HRM</h3>
-              <p className="text-ink/60 text-sm mb-6">Employees, payroll, and leave.</p>
-              <div className="flex items-end gap-1 mb-8">
-                <span className="text-4xl font-mono font-bold text-ink">$25</span>
-                <span className="text-ink/50 mb-1">/mo</span>
-              </div>
-              <Link href="/register" className="block w-full py-3 bg-transparent hover:bg-ink/5 text-ink font-medium rounded-full text-center border border-ink transition-colors">
-                Start Free Trial
-              </Link>
-            </div>
-            <div className="p-8 flex-1 bg-cardsurface">
-              <ul className="space-y-4">
-                <li className="flex items-start gap-4 text-ink/80"><CheckCircle2 className="text-moss shrink-0" size={20} /> <span>Employee Directory</span></li>
-                <li className="flex items-start gap-4 text-ink/80"><CheckCircle2 className="text-moss shrink-0" size={20} /> <span>Payroll Generation</span></li>
-                <li className="flex items-start gap-4 text-ink/80"><CheckCircle2 className="text-moss shrink-0" size={20} /> <span>Leave Management</span></li>
-                <li className="flex items-start gap-4 text-ink/80"><CheckCircle2 className="text-moss shrink-0" size={20} /> <span>Accounting Integration</span></li>
-              </ul>
-            </div>
-          </div>
+      {/* Enterprise CTA */}
+      <section className="py-24 px-6 text-center bg-slate-900 dark:bg-[#040704] relative overflow-hidden transition-colors duration-300">
+        <div className="max-w-[1200px] mx-auto relative z-10">
+          <h2 className="text-4xl md:text-5xl font-semibold text-white mb-6">Need something custom?</h2>
+          <p className="text-white/50 text-xl leading-relaxed max-w-2xl mx-auto mb-10">
+            For organizations with specialized security, scale, or compliance needs, we offer custom enterprise plans.
+          </p>
+          <Link href="/contact" className="inline-flex items-center justify-center px-8 py-4 bg-white/10 backdrop-blur-md border border-white/20 text-white font-bold text-lg rounded-full hover:bg-white/20 transition-colors">
+            Contact Sales
+          </Link>
         </div>
-
-        {/* FAQ */}
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-3xl font-display text-ink mb-10 text-center">Frequently Asked Questions</h2>
-          <div className="space-y-6">
-            <div className="bg-cardsurface p-8 rounded-[18px] border border-ink/5 shadow-resting">
-              <h4 className="text-xl font-display text-ink mb-3">Are there per-user fees?</h4>
-              <p className="text-ink/70 leading-relaxed">No. Our pricing is a flat monthly rate per module. You can add as many team members as you need without your bill increasing.</p>
-            </div>
-            <div className="bg-cardsurface p-8 rounded-[18px] border border-ink/5 shadow-resting">
-              <h4 className="text-xl font-display text-ink mb-3">Can I cancel at any time?</h4>
-              <p className="text-ink/70 leading-relaxed">Yes, subscriptions are month-to-month. You can cancel any module at any time from your billing dashboard.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+      </section>
+    </>
   );
 }

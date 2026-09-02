@@ -55,3 +55,15 @@ export const platformSettings = pgTable("platform_settings", {
   updatedAt: timestamp("updated_at")
     .$onUpdate(() => new Date()),
 });
+
+export const pricingPackage = pgTable("pricing_package", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  price: integer("price").notNull(),
+  interval: text("interval").notNull(), // 'month' or 'year'
+  features: json("features").notNull(), // string[]
+  isPopular: boolean("is_popular").default(false).notNull(),
+  order: integer("order").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});

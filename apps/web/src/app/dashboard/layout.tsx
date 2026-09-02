@@ -2,6 +2,7 @@
 
 import { useSession, signOut, useOrganization, authClient } from "@/lib/auth-client";
 import { useRouter, usePathname } from "next/navigation";
+import { useTheme } from "next-themes";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { 
@@ -32,10 +33,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [showOrgMenu, setShowOrgMenu] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const { theme, setTheme } = useTheme();
+  const isDarkMode = theme === "dark";
+  const toggleDarkMode = () => setTheme(isDarkMode ? "light" : "dark");
   const [userOrgs, setUserOrgs] = useState<any[]>([]);
 
   useEffect(() => {
@@ -45,9 +48,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, []);
 
   useEffect(() => {
-    // Strictly force light mode on mount to match the requested design default
-    document.documentElement.classList.remove('dark');
-    setIsDarkMode(false);
+    // next-themes handles dark mode
     
     fetch('/api/core/notifications')
       .then(r => r.json())
@@ -67,16 +68,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   }, [searchQuery]);
 
-  const toggleDarkMode = () => {
-    if (isDarkMode) {
-      document.documentElement.classList.remove('dark');
-      setIsDarkMode(false);
-    } else {
-      document.documentElement.classList.add('dark');
-      setIsDarkMode(true);
-    }
-  };
-
+  
   const markNotificationAsRead = async (id: string) => {
     await fetch(`/api/core/notifications/${id}/read`, { method: 'PATCH' });
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));

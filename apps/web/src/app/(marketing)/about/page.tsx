@@ -2,95 +2,108 @@
 
 import TiltCard from "@/components/marketing/TiltCard";
 import BlurText from "@/components/marketing/BlurText";
-import { Heart, Zap, Globe } from "lucide-react";
+import { Compass, Lightbulb, Target, ArrowRight, ShieldCheck, Cpu, Code2 } from "lucide-react";
 
 export default function AboutPage() {
   const values = [
-    { icon: Heart, title: "Built for Africa", color: "#31cb00", desc: "We build software that actually fits how African businesses operate — M-PESA first, KES pricing, local compliance built in." },
-    { icon: Zap, title: "Radical Simplicity", color: "#f59e0b", desc: "Every feature earns its place. We remove until it breaks, then add one thing back. Cordibase stays fast, lean, and focused." },
-    { icon: Globe, title: "Open Growth", color: "#60a5fa", desc: "Your data is yours. Export anytime, integrate via our public API, and grow without being locked in." },
+    { icon: Lightbulb, title: "Radical Innovation", color: "#31cb00", desc: "We don't settle for 'good enough'. We challenge industry norms to build smarter, faster, and more intuitive systems for everyone." },
+    { icon: ShieldCheck, title: "Uncompromising Quality", color: "#119822", desc: "Every feature we ship is tested rigorously. Our infrastructure is built to scale securely, keeping your data protected at all times." },
+    { icon: Target, title: "Customer-Obsessed", color: "#8bc088", desc: "Your success is our success. We listen intently to our community and adapt our roadmap to solve your biggest challenges." },
   ];
 
   const team = [
-    { name: "Moses K.", role: "Founder & CEO", color: "#119822", initials: "MK" },
-    { name: "Aisha M.", role: "Head of Product", color: "#31cb00", initials: "AM" },
-    { name: "David O.", role: "Lead Engineer", color: "#f59e0b", initials: "DO" },
-    { name: "Fatuma S.", role: "Head of Support", color: "#60a5fa", initials: "FS" },
+    { name: "Executive Team", role: "Leadership & Vision", initials: "ET", icon: Compass },
+    { name: "Engineering Core", role: "Architecture & Systems", initials: "EC", icon: Cpu },
+    { name: "Product Design", role: "UX/UI & Research", initials: "PD", icon: Code2 },
   ];
 
   return (
     <>
       {/* Hero */}
-      <section className="pt-32 pb-24 px-6" style={{ background: "#0d1a0d" }}>
-        <div className="max-w-4xl mx-auto text-center">
-          <p className="text-sm font-semibold uppercase tracking-widest mb-4" style={{ color: "#31cb00" }}>Our story</p>
-          <h1 className="font-bold text-white leading-none mb-6 text-5xl md:text-7xl">
-            <BlurText text="Built from frustration. Grown with purpose." className="text-5xl md:text-7xl font-bold text-white leading-tight" />
+      <section className="pt-32 pb-24 px-6 border-b border-black/5 dark:border-white/15 relative overflow-hidden transition-colors duration-300">
+        <div className="absolute inset-0 pointer-events-none opacity-20">
+           <div className="absolute top-0 right-1/4 w-96 h-96 bg-lime_green rounded-full blur-[120px]" />
+           <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-forest_green rounded-full blur-[120px]" />
+        </div>
+        <div className="max-w-[1200px] mx-auto text-center relative z-10">
+          <p className="text-sm font-semibold uppercase tracking-widest mb-4 text-lime_green">Our Story</p>
+          <h1 className="font-bold text-slate-900 dark:text-white leading-[1.1] mb-6 text-5xl md:text-7xl transition-colors duration-300">
+            <BlurText text="Built from frustration." className="inline-block" /> <br/>
+            <span className="font-instrument italic font-medium text-lime_green">Grown with purpose.</span>
           </h1>
-          <p className="text-white/50 text-xl max-w-2xl mx-auto leading-relaxed">
-            Cordibase was born after our founder spent three years stitching together QuickBooks, HubSpot, and spreadsheets for a Nairobi-based company. There had to be a better way.
+          <p className="text-slate-500 dark:text-white/50 text-xl max-w-2xl mx-auto leading-relaxed transition-colors duration-300">
+            Cordibase was born from a simple observation: modern teams are drowning in disconnected tools. We set out to build a unified operating system that finally brings CRM, Accounting, and HR together.
           </p>
         </div>
       </section>
 
       {/* Origin Story */}
-      <section className="py-24 px-6" style={{ background: "#0a150a" }}>
-        <div className="max-w-4xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+      <section className="py-24 px-6 border-b border-black/5 dark:border-white/15 bg-slate-50 dark:bg-black/20 transition-colors duration-300">
+        <div className="max-w-[1200px] mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
             <div>
-              <h2 className="text-3xl font-bold text-white mb-6">The problem we set out to solve</h2>
-              <p className="text-white/50 leading-relaxed mb-4">
-                Every tool built for African SMEs was either too expensive (Salesforce, SAP), too simple (Excel), or built for Western markets without understanding M-PESA, KRA compliance, or how local businesses actually grow.
-              </p>
-              <p className="text-white/50 leading-relaxed mb-4">
-                We started building Cordibase in 2023, initially just for ourselves. Then three friends asked to use it. Then their friends. By 2024, we had 200 companies on the platform.
-              </p>
-              <p className="text-white/50 leading-relaxed">
-                Today, over 1,240 teams across 30 countries trust Cordibase to run their business operations every day.
-              </p>
+              <h2 className="text-3xl lg:text-4xl font-semibold text-slate-900 dark:text-white mb-6 transition-colors duration-300">
+                The Problem We Set Out to Solve
+              </h2>
+              <div className="space-y-6 text-slate-600 dark:text-white/60 leading-relaxed text-lg transition-colors duration-300">
+                <p>
+                  Every major enterprise software platform today is either wildly expensive and bloated, or too simple to handle real growth. Teams are forced to duct-tape solutions together using spreadsheets and brittle integrations.
+                </p>
+                <p>
+                  We started building Cordibase as a centralized hub. A platform where your sales pipeline directly informs your accounting ledgers, and your HR data automatically feeds into payroll—without you lifting a finger.
+                </p>
+                <p>
+                  Today, innovative companies around the world trust Cordibase to streamline their operations, reduce overhead, and scale their businesses efficiently.
+                </p>
+              </div>
             </div>
-            <div className="rounded-2xl border border-white/10 p-8 space-y-4" style={{ background: "#0d1a0d" }}>
-              {[["2023","Cordibase founded in Nairobi, Kenya"],["Jan 2024","First 100 paying customers"],["Jun 2024","Launched M-PESA reconciliation"],["2025","1,200+ teams · 30 countries"],["2026","Series A · Expanding to West Africa"]].map(([year, event]) => (
-                <div key={year} className="flex gap-4 items-start">
-                  <span className="text-xs font-mono font-bold mt-1 shrink-0" style={{ color: "#31cb00" }}>{year}</span>
-                  <p className="text-white/60 text-sm">{event}</p>
-                </div>
-              ))}
+            <div className="relative">
+               {/* Decorative Timeline */}
+               <div className="absolute left-6 top-6 bottom-6 w-px bg-gradient-to-b from-lime_green to-transparent" />
+               <div className="rounded-3xl border border-black/10 dark:border-white/10 p-10 space-y-8 bg-white/80 dark:bg-[#0a150a]/80 backdrop-blur-xl shadow-2xl transition-colors duration-300">
+                 {[
+                   ["Inception", "The initial concept of a unified OS is drafted."],
+                   ["Architecture", "Engineering begins on the core shared database."],
+                   ["Beta Launch", "First 100 pilot companies onboarded successfully."],
+                   ["Module Expansion", "Accounting and HRM modules go live."],
+                   ["Global Scale", "Serving thousands of teams worldwide."]
+                 ].map(([phase, desc], i) => (
+                   <div key={phase} className="flex gap-6 items-start relative z-10">
+                     <div className="w-12 h-12 shrink-0 rounded-full bg-slate-100 dark:bg-white/5 border border-black/10 dark:border-white/10 flex items-center justify-center font-black text-lime_green shadow-inner">
+                        {i + 1}
+                     </div>
+                     <div className="pt-2">
+                       <h4 className="text-slate-900 dark:text-white font-bold text-lg mb-1">{phase}</h4>
+                       <p className="text-slate-500 dark:text-white/50 text-sm leading-relaxed">{desc}</p>
+                     </div>
+                   </div>
+                 ))}
+               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Values */}
-      <section className="py-24 px-6" style={{ background: "#0d1a0d" }}>
-        <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl font-bold text-white mb-12 text-center">What we stand for</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {values.map((v) => (
-              <TiltCard key={v.title} className="rounded-2xl border border-white/10 p-8" style={{ background: "#0a150a" } as React.CSSProperties}>
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-6" style={{ background: `${v.color}22` }}>
-                  <v.icon size={24} style={{ color: v.color }} />
-                </div>
-                <h3 className="text-xl font-bold text-white mb-3">{v.title}</h3>
-                <p className="text-white/50 leading-relaxed text-sm">{v.desc}</p>
-              </TiltCard>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Team */}
-      <section className="py-24 px-6" style={{ background: "#0a150a" }}>
-        <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl font-bold text-white mb-12 text-center">The people behind Cordibase</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {team.map((m) => (
-              <div key={m.name} className="rounded-2xl border border-white/10 p-6 text-center" style={{ background: "#0d1a0d" }}>
-                <div className="w-16 h-16 rounded-full flex items-center justify-center text-xl font-black text-white mx-auto mb-4" style={{ background: `linear-gradient(135deg,${m.color}88,${m.color})` }}>
-                  {m.initials}
-                </div>
-                <p className="text-white font-semibold">{m.name}</p>
-                <p className="text-white/40 text-sm mt-1">{m.role}</p>
+      {/* Values (Redesigned Cards) */}
+      <section className="py-24 px-6 border-b border-black/5 dark:border-white/15 bg-white dark:bg-transparent transition-colors duration-300">
+        <div className="max-w-[1200px] mx-auto">
+          <h2 className="text-4xl font-semibold text-slate-900 dark:text-white mb-16 text-center transition-colors duration-300">
+            What We Stand For
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {values.map((v, i) => (
+              <div key={v.title} className="relative group">
+                <div className="absolute inset-0 bg-gradient-to-br from-lime_green/20 to-transparent rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <TiltCard className="relative h-full rounded-3xl border border-black/5 dark:border-white/10 p-10 bg-slate-50 dark:bg-[#081008] transition-colors duration-300">
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-colors duration-300" style={{ background: `${v.color}22` }}>
+                      <v.icon size={28} style={{ color: v.color }} />
+                    </div>
+                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white tracking-wide">{v.title}</h3>
+                  </div>
+                  <div className="h-px w-full bg-gradient-to-r from-black/10 dark:from-white/10 to-transparent mb-6" />
+                  <p className="text-slate-600 dark:text-white/60 leading-relaxed">{v.desc}</p>
+                </TiltCard>
               </div>
             ))}
           </div>
@@ -98,11 +111,14 @@ export default function AboutPage() {
       </section>
 
       {/* Mission */}
-      <section className="py-24 px-6 text-center" style={{ background: "#0d1a0d" }}>
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-4xl md:text-5xl font-black text-white mb-6">Our mission</h2>
-          <p className="text-white/50 text-xl leading-relaxed">
-            To give every African business — from a sole trader in Kisumu to a 500-person company in Lagos — the same world-class business software that Fortune 500 companies use, at a price they can actually afford.
+      <section className="py-32 px-6 text-center bg-slate-900 dark:bg-black relative overflow-hidden transition-colors duration-300">
+        <div className="absolute inset-0 opacity-20">
+           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-[600px] bg-gradient-to-r from-lime_green via-forest_green to-lime_green rounded-[100%] blur-[150px] opacity-30" />
+        </div>
+        <div className="max-w-[1200px] mx-auto relative z-10">
+          <h2 className="text-5xl md:text-7xl font-semibold text-white mb-8 tracking-tight">Our Mission</h2>
+          <p className="text-white/70 text-2xl leading-relaxed max-w-4xl mx-auto font-light">
+            To provide every growing business with a <span className="text-lime_green font-medium">unified operating system</span> that eliminates friction, connects teams, and empowers global scalability.
           </p>
         </div>
       </section>

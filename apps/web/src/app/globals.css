@@ -4,6 +4,7 @@
 
 @theme inline {
   --font-instrument: var(--font-instrument), serif;
+  --font-space: var(--font-space), sans-serif;
   --color-linen: #F7F9F7;
   --color-cardsurface: #FFFFFF;
   --color-ink: #152614;
