@@ -36,14 +36,15 @@ export const auth = betterAuth({
                 }
             },
             sendInvitationEmail: async (data, request) => {
-                const inviteLink = `http://localhost:3000/invite/${data.id}`;
+                const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+                const inviteLink = `${frontendUrl}/invite/${data.id}`;
                 try {
                     // Fetch the Default SMTP configuration for this organization (isGlobal = true in emailAccount)
                     const settings = await db.select().from(schema.emailAccount)
                         .where(
                             eq(schema.emailAccount.organizationId, data.organization.id)
                         );
-                    const defaultSmtp = settings.find(s => s.isGlobal);
+                    const defaultSmtp = settings.find((s: any) => s.isGlobal);
 
                     if (!defaultSmtp) {
                         throw new APIError("BAD_REQUEST", { message: "No default SMTP configured. Please set a default email first in your workspace Email Config." });
@@ -67,8 +68,8 @@ export const auth = betterAuth({
 
                     const brandingQuery = await db.select().from(schema.accountingSettings).where(eq(schema.accountingSettings.organizationId, data.organization.id));
                     const branding = brandingQuery[0] || {};
-                    const logoUrl = branding.logoUrl || null;
-                    const primaryColor = branding.primaryColor || "#A83C2E";
+                    const logoUrl = (branding as any).logoUrl || null;
+                    const primaryColor = (branding as any).primaryColor || "#A83C2E";
 
                     const htmlBody = `
 <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #F8FAFC; padding: 40px 20px;">
@@ -121,7 +122,7 @@ export const auth = betterAuth({
             secure: process.env.NODE_ENV === "production"
         }
     },
-    baseURL: "http://127.0.0.1:3001/api/auth",
-    trustedOrigins: ["http://localhost:3000"]
+    baseURL: process.env.BETTER_AUTH_URL || "http://127.0.0.1:3001/api/auth",
+    trustedOrigins: [process.env.FRONTEND_URL || "http://localhost:3000"]
 });
 

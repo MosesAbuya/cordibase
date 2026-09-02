@@ -65,7 +65,7 @@ fastify.post('/api/core/billing/checkout', async (request, reply) => {
   const authRes = await fetch('http://localhost:3001/api/auth/get-session', {
     headers: { cookie: cookieHeader }
   });
-  const sessionData = await authRes.json();
+  const sessionData = await authRes.json() as any;
   if (!sessionData || !sessionData.session) {
     return reply.code(401).send({ error: 'Unauthorized' });
   }
@@ -87,7 +87,7 @@ fastify.post('/api/core/billing/checkout', async (request, reply) => {
     })
   });
 
-  const paystackData = await paystackRes.json();
+  const paystackData = await paystackRes.json() as any;
   if (!paystackData.status) {
     return reply.code(400).send({ error: paystackData.message });
   }
@@ -139,7 +139,7 @@ fastify.get('/api/core/billing/subscriptions', async (request, reply) => {
   const authRes = await fetch('http://localhost:3001/api/auth/get-session', {
     headers: { cookie: cookieHeader }
   });
-  const sessionData = await authRes.json();
+  const sessionData = await authRes.json() as any;
   if (!sessionData || !sessionData.session) {
     return reply.code(401).send({ error: 'Unauthorized' });
   }
@@ -158,7 +158,7 @@ fastify.post('/api/core/billing/verify', async (request, reply) => {
   const authRes = await fetch('http://localhost:3001/api/auth/get-session', {
     headers: { cookie: cookieHeader }
   });
-  const sessionData = await authRes.json();
+  const sessionData = await authRes.json() as any;
   if (!sessionData || !sessionData.session) {
     return reply.code(401).send({ error: 'Unauthorized' });
   }
@@ -172,7 +172,7 @@ fastify.post('/api/core/billing/verify', async (request, reply) => {
     }
   });
   
-  const verifyData = await verifyRes.json();
+  const verifyData = await verifyRes.json() as any;
   if (verifyData.data.status === 'success') {
     // Upsert subscription
     const existing = await db.select().from(authSchema.moduleSubscription)
@@ -205,7 +205,7 @@ fastify.get('/api/core/organization/members', async (request, reply) => {
   if (!cookieHeader) return reply.code(401).send({ error: 'Unauthorized' });
 
   const authRes = await fetch('http://localhost:3001/api/auth/get-session', { headers: { cookie: cookieHeader } });
-  const sessionData = await authRes.json();
+  const sessionData = await authRes.json() as any;
 
   // Use userId from session (always present) — don't rely on activeOrganizationId
   const userId = sessionData?.user?.id;
@@ -254,8 +254,8 @@ fastify.get('/api/core/organization/members', async (request, reply) => {
 
   // Combine them for the frontend
   const combined = [
-    ...activeMembers.map(m => ({ ...m, status: 'active' })),
-    ...pendingInvites.map(i => ({ ...i, name: '' })) // empty name forces the UI to show 'Pending' state
+    ...activeMembers.map((m: any) => ({ ...m, status: 'active' })),
+    ...pendingInvites.map((i: any) => ({ ...i, name: '' })) // empty name forces the UI to show 'Pending' state
   ];
 
   // Sort by created at
@@ -269,7 +269,7 @@ fastify.delete('/api/core/organization/members/:id', async (request, reply) => {
   if (!cookieHeader) return reply.code(401).send({ error: 'Unauthorized' });
 
   const authRes = await fetch('http://localhost:3001/api/auth/get-session', { headers: { cookie: cookieHeader } });
-  const sessionData = await authRes.json();
+  const sessionData = await authRes.json() as any;
   const userId = sessionData?.user?.id;
   if (!userId) return reply.code(401).send({ error: 'Unauthorized' });
 
@@ -300,7 +300,7 @@ fastify.get('/api/core/notifications', async (request, reply) => {
   if (!cookieHeader) return { notifications: [] };
 
   const authRes = await fetch('http://localhost:3001/api/auth/get-session', { headers: { cookie: cookieHeader } });
-  const sessionData = await authRes.json();
+  const sessionData = await authRes.json() as any;
   const orgId = sessionData?.session?.activeOrganizationId;
   if (!orgId) return { notifications: [] };
 
@@ -325,7 +325,7 @@ fastify.get('/api/core/search', async (request, reply) => {
   if (!cookieHeader) return { results: [] };
 
   const authRes = await fetch('http://localhost:3001/api/auth/get-session', { headers: { cookie: cookieHeader } });
-  const sessionData = await authRes.json();
+  const sessionData = await authRes.json() as any;
   const orgId = sessionData?.session?.activeOrganizationId;
   if (!orgId) return { results: [] };
   
@@ -336,8 +336,8 @@ fastify.get('/api/core/search', async (request, reply) => {
   
   // Concurrently search all 3 modules
   const [customers, invoices, employees] = await Promise.all([
-    db.select().from(crmSchema.customer)
-      .where(and(eq(crmSchema.customer.organizationId, orgId as string), ilike(crmSchema.customer.name, searchStr)))
+    db.select().from(crmSchema.company)
+      .where(and(eq(crmSchema.company.organizationId, orgId as string), ilike(crmSchema.company.name, searchStr)))
       .limit(5),
     db.select().from(accountingSchema.invoice)
       .where(and(eq(accountingSchema.invoice.organizationId, orgId as string), ilike(accountingSchema.invoice.invoiceNumber, searchStr)))
@@ -348,9 +348,9 @@ fastify.get('/api/core/search', async (request, reply) => {
   ]);
 
   const results = [
-    ...customers.map(c => ({ id: c.id, title: c.name, type: 'CRM Contact', link: `/dashboard/crm` })),
-    ...invoices.map(i => ({ id: i.id, title: `Invoice ${i.invoiceNumber}`, subtitle: `$${i.total}`, type: 'Accounting', link: `/dashboard/accounting` })),
-    ...employees.map(e => ({ id: e.id, title: `${e.firstName} ${e.lastName}`, subtitle: e.jobTitle, type: 'HRM Employee', link: `/dashboard/hrm` }))
+    ...customers.map((c: any) => ({ id: c.id, title: c.name, type: 'CRM Contact', link: `/dashboard/crm` })),
+    ...invoices.map((i: any) => ({ id: i.id, title: `Invoice ${i.invoiceNumber}`, subtitle: `$${i.total}`, type: 'Accounting', link: `/dashboard/accounting` })),
+    ...employees.map((e: any) => ({ id: e.id, title: `${e.firstName} ${e.lastName}`, subtitle: e.jobTitle, type: 'HRM Employee', link: `/dashboard/hrm` }))
   ];
 
   return { results };
@@ -363,11 +363,11 @@ fastify.post("/api/settings/smtp", async (request, reply) => {
   if (!cookieHeader) return reply.code(401).send({ error: "Unauthorized" });
 
   const authRes = await fetch("http://localhost:3001/api/auth/get-session", { headers: { cookie: cookieHeader } });
-  const sessionData = await authRes.json();
+  const sessionData = await authRes.json() as any;
   const orgId = sessionData?.session?.activeOrganizationId;
   if (!orgId) return reply.code(401).send({ error: "Unauthorized" });
 
-  const body = request.body;
+  const body = request.body as any;
   
   const existing = await db.select().from(schema.workspaceSettings).where(eq(schema.workspaceSettings.organizationId, orgId));
   

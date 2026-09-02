@@ -51,6 +51,9 @@ importers:
 
   apps/service-core:
     dependencies:
+      '@cordibase/shared-db':
+        specifier: workspace:*
+        version: link:../../packages/shared-db
       '@fastify/cors':
         specifier: ^11.3.0
         version: 11.3.0
@@ -63,6 +66,9 @@ importers:
       dotenv:
         specifier: ^16.4.5
         version: 16.6.1
+      drizzle-orm:
+        specifier: ^0.30.10
+        version: 0.30.10(@neondatabase/serverless@0.9.5)(@types/pg@8.11.6)(@types/react@19.2.18)(kysely@0.29.5)(react@19.2.8)
       fastify:
         specifier: ^5.12.1
         version: 5.12.1
