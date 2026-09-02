@@ -1,0 +1,29 @@
+{
+  "name": "cordibase",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev --parallel",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "typecheck": "turbo run typecheck"
+  },
+  "devDependencies": {
+    "eslint": "^9.0.0",
+    "prettier": "^3.3.0",
+    "turbo": "^2.0.0",
+    "typescript": "^5.5.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "packageManager": "pnpm@11.24.0",
+  "pnpm": {
+    "onlyBuiltDependencies": [],
+    "ignoredBuiltDependencies": [
+      "@google/genai",
+      "msgpackr-extract",
+      "protobufjs"
+    ]
+  }
+}

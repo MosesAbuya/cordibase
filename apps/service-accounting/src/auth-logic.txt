@@ -1,0 +1,9 @@
+    (request as any).user = sessionData.user;
+    
+    const userId = sessionData.user.id;
+    const requestedOrgId = request.headers['x-org-id'] || sessionData.session.activeOrganizationId;
+    
+    let orgId = requestedOrgId;
+    let memberRecord = null;
+
+    // Check membership via auth API or shared DB. Wait, service-accounting only has accountingSchema, crmSchema imported!

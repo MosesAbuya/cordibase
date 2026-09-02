@@ -1,0 +1,29 @@
+        {/* Global Settings */}
+        {isAdmin && (
+        <section className="bg-white dark:bg-[#0F172A] border border-[#EAECF0] dark:border-slate-800 rounded-[12px] overflow-hidden shadow-sm">
+          <div className="px-6 py-4 border-b border-[#EAECF0] dark:border-slate-800 flex justify-between items-center bg-[#F9FAFB] dark:bg-slate-800/50">
+            <h2 className="text-[16px] font-bold text-[#1D2939] dark:text-white flex items-center gap-2">
+              <Settings className="w-4 h-4 text-[#667085]" />
+              Workspace Global Settings
+            </h2>
+          </div>
+          <div className="p-6 space-y-4">
+             <div className="space-y-1.5">
+                <label className="text-[13px] font-medium text-[#344054] dark:text-slate-300">Default Workspace Signature (HTML)</label>
+                <textarea 
+                  value={globalSignature}
+                  onChange={e => setGlobalSignature(e.target.value)}
+                  className="w-full px-3 py-2 border border-[#EAECF0] dark:border-slate-700 rounded-[8px] bg-transparent text-[14px] focus:outline-none focus:ring-2 focus:ring-[#A83C2E]/20 focus:border-[#A83C2E] min-h-[100px]"
+                  placeholder="<p>Best regards,<br>The Team</p>"
+                ></textarea>
+             </div>
+             <button 
+                onClick={handleSaveGlobal}
+                disabled={savingGlobal}
+                className="px-4 py-2.5 bg-white dark:bg-slate-800 border border-[#D0D5DD] dark:border-slate-700 text-[#344054] dark:text-slate-300 rounded-[8px] text-[14px] font-medium hover:bg-[#F9FAFB] dark:hover:bg-slate-700 transition-colors shadow-sm disabled:opacity-50 flex items-center min-w-[100px] justify-center"
+              >
+                {savingGlobal ? <Loader2 size={16} className="animate-spin" /> : "Save Global Settings"}
+             </button>
+          </div>
+        </section>
+        )}

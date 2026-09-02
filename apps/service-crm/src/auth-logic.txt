@@ -1,0 +1,45 @@
+    if (userId) {
+      (request as any).user = sessionData.user;
+      const requestedOrgId = request.headers['x-org-id'] || sessionData?.session?.activeOrganizationId;
+      
+      let orgId = requestedOrgId;
+      let memberRecord = null;
+
+      if (orgId) {
+        const memberships = await db.select().from(authSchema.member).where(and(eq(authSchema.member.userId, userId), eq(authSchema.member.organizationId, orgId))).limit(1);
+        memberRecord = memberships[0];
+      }
+      
+      if (!memberRecord) {
+        const memberships = await db.select().from(authSchema.member).where(eq(authSchema.member.userId, userId)).limit(1);
+        memberRecord = memberships[0];
+        orgId = memberRecord?.organizationId;
+      }
+
+      if (memberRecord) {
+        (request as any).activeOrganizationId = orgId;
+        (request as any).member = memberRecord;
+
+        // Module-based Access Control
+        let requiredModule = null;
+        if (request.url.startsWith('/api/crm/accounting')) {
+          requiredModule = 'accounting';
+        } else if (request.url.startsWith('/api/crm/reports')) {
+          requiredModule = 'reports';
+        } else if (request.url.startsWith('/api/crm')) {
+          requiredModule = 'crm';
+        }
+
+        if (requiredModule && memberRecord.role !== 'owner' && memberRecord.role !== 'admin') {
+          let allowedModules = [];
+          try {
+            allowedModules = typeof memberRecord.modules === 'string' ? JSON.parse(memberRecord.modules) : (memberRecord.modules || []);
+          } catch(e) {}
+          if (!allowedModules.includes(requiredModule)) {
+            return reply.code(403).send({ error: 'Forbidden: Missing required module access (' + requiredModule + ')' });
+          }
+        }
+      } else {
+        (request as any).activeOrganizationId = null;
+      }
+    } else {

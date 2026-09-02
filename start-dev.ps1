@@ -1,0 +1,6 @@
+Start-Process -NoNewWindow -FilePath "npx" -ArgumentList "tsx", "watch", "src/index.ts" -WorkingDirectory "apps\service-core"
+Start-Process -NoNewWindow -FilePath "npx" -ArgumentList "tsx", "watch", "src/index.ts" -WorkingDirectory "apps\service-crm"
+Start-Process -NoNewWindow -FilePath "npx" -ArgumentList "tsx", "watch", "src/index.ts" -WorkingDirectory "apps\service-accounting"
+Start-Process -NoNewWindow -FilePath "npx" -ArgumentList "tsx", "watch", "src/index.ts" -WorkingDirectory "apps\service-hrm"
+Start-Process -NoNewWindow -FilePath "npx" -ArgumentList "next", "dev" -WorkingDirectory "apps\web"
+Write-Host "All services started!"

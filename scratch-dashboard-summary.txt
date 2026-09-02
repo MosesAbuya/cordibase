@@ -1,0 +1,30 @@
+  fastify.get('/api/crm/dashboard/summary', async (request: any, reply) => {
+    const orgId = request.headers['x-org-id'] || request.activeOrganizationId;
+    if (!orgId) return reply.code(403).send({ error: 'Forbidden' });
+    
+    // Revenue & Transactions
+    const txns = await db.select().from(accountingSchema.transaction).where(eq(accountingSchema.transaction.organizationId, orgId));
+    let totalIncome = 0;
+    for (const t of txns) {
+      if (t.type === 'income') totalIncome += Number(t.amount);
+    }
+    
+    // Deals
+    const deals = await db.select().from(crmSchema.deal).where(eq(crmSchema.deal.organizationId, orgId));
+    const activeDeals = deals.filter(d => d.status !== 'won' && d.status !== 'lost').length;
+    
+    // Conversion Rate (dummy calculation for now, e.g. won / total * 100)
+    const wonDeals = deals.filter(d => d.status === 'won').length;
+    const conversionRate = deals.length > 0 ? ((wonDeals / deals.length) * 100).toFixed(1) : "0.0";
+    
+    // Contacts
+    const contacts = await db.select().from(crmSchema.contact).where(eq(crmSchema.contact.organizationId, orgId));
+    const totalContacts = contacts.length;
+    
+    return {
+      revenue: totalIncome,
+      activeDeals,
+      conversionRate,
+      totalContacts
+    };
+  });

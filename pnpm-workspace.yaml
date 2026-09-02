@@ -1,0 +1,10 @@
+packages:
+  - 'apps/*'
+  - 'packages/*'
+allowBuilds:
+  '@google/genai': set this to true or false
+  es5-ext: true
+  esbuild: true
+  msgpackr-extract: set this to true or false
+  protobufjs: set this to true or false
+  unrs-resolver: true

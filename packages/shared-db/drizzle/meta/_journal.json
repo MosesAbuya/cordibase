@@ -1,0 +1,20 @@
+{
+  "version": "5",
+  "dialect": "pg",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1787935319253,
+      "tag": "0000_ordinary_shatterstar",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1787945335817,
+      "tag": "0001_rapid_lady_deathstrike",
+      "breakpoints": true
+    }
+  ]
+}

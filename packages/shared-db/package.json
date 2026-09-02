@@ -1,0 +1,23 @@
+{
+  "name": "@cordibase/shared-db",
+  "version": "1.0.0",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc -w",
+    "clean": "rm -rf dist",
+    "db:generate": "drizzle-kit generate",
+    "db:push": "drizzle-kit push"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.30.10",
+    "@neondatabase/serverless": "^0.9.3",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0",
+    "drizzle-kit": "^0.20.17",
+    "tsx": "^4.7.2"
+  }
+}

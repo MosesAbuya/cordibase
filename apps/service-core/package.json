@@ -1,0 +1,24 @@
+{
+  "name": "@cordibase/service-core",
+  "version": "1.0.0",
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@fastify/cors": "^11.3.0",
+    "@types/nodemailer": "^8.0.1",
+    "better-auth": "^1.7.1",
+    "dotenv": "^16.4.5",
+    "fastify": "^5.12.1",
+    "nodemailer": "^9.0.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.7.2",
+    "typescript": "^5.5.0"
+  }
+}
