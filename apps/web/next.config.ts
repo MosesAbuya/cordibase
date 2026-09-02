@@ -5,11 +5,11 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/api/auth/:path*',
-        destination: 'http://127.0.0.1:3001/api/auth/:path*', // Core Service handles Auth
+        destination: 'https://cordibase.onrender.com/api/auth/:path*', // Core Service handles Auth
       },
       {
         source: '/api/core/:path*',
-        destination: 'http://127.0.0.1:3001/api/core/:path*', // Core Service
+        destination: 'https://cordibase.onrender.com/api/core/:path*', // Core Service
       },
       {
         source: '/api/crm/:path*',
