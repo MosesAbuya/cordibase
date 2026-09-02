@@ -27,7 +27,7 @@ fastify.addHook('preHandler', async (request, reply) => {
       headers: { 'Cookie': cookieHeader, 'authorization': request.headers['authorization'] || '' }
     });
     if (!coreRes.ok) throw new Error('Invalid session');
-    const sessionData = await coreRes.json();
+    const sessionData = await coreRes.json() as any;
     const userId = sessionData?.user?.id;
     
     if (userId) {
@@ -35,7 +35,7 @@ fastify.addHook('preHandler', async (request, reply) => {
       const requestedOrgId = request.headers['x-org-id'] || sessionData?.session?.activeOrganizationId;
       
       let orgId = requestedOrgId;
-      let memberRecord = null;
+      let memberRecord: any = null;
 
       if (orgId) {
         const memberships = await db.select().from(authSchema.member).where(and(eq(authSchema.member.userId, userId), eq(authSchema.member.organizationId, orgId as string))).limit(1);
@@ -53,7 +53,7 @@ fastify.addHook('preHandler', async (request, reply) => {
         (request as any).member = memberRecord;
 
         // Module-based Access Control
-        let requiredModule = null;
+        let requiredModule: any = null;
         if (request.url.startsWith('/api/crm/accounting')) {
           requiredModule = 'accounting';
         } else if (request.url.startsWith('/api/crm/reports')) {
@@ -63,7 +63,7 @@ fastify.addHook('preHandler', async (request, reply) => {
         }
 
         if (requiredModule && memberRecord.role !== 'owner' && memberRecord.role !== 'admin') {
-          let allowedModules = [];
+          let allowedModules: any[] = [];
           try {
             allowedModules = typeof (memberRecord as any).modules === 'string' ? JSON.parse((memberRecord as any).modules) : ((memberRecord as any).modules || []);
           } catch(e) {}

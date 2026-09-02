@@ -30,7 +30,7 @@ fastify.addHook('preHandler', async (request, reply) => {
     const authRes = await fetch('http://localhost:3001/api/auth/get-session', {
       headers: { cookie: cookieHeader || '' }
     });
-    const sessionData = await authRes.json();
+    const sessionData = await authRes.json() as any as any;
 
     if (!sessionData || !sessionData.session) {
       return reply.code(401).send({ error: 'Unauthorized: Invalid session' });
@@ -41,7 +41,7 @@ fastify.addHook('preHandler', async (request, reply) => {
     const requestedOrgId = request.headers['x-org-id'] || sessionData.session.activeOrganizationId;
 
     let orgId = requestedOrgId;
-    let memberRecord = null;
+    let memberRecord: any = null;
 
     if (orgId) {
       const memberships = await db.select().from(authSchema.member).where(and(eq(authSchema.member.userId, userId), eq(authSchema.member.organizationId, orgId as string))).limit(1);
@@ -59,7 +59,7 @@ fastify.addHook('preHandler', async (request, reply) => {
       (request as any).member = memberRecord;
 
       if (memberRecord.role !== 'owner' && memberRecord.role !== 'admin') {
-        let allowedModules = [];
+        let allowedModules: any[] = [];
         try {
           allowedModules = typeof (memberRecord as any).modules === 'string' ? JSON.parse((memberRecord as any).modules) : ((memberRecord as any).modules || []);
         } catch(e) {}
@@ -102,7 +102,7 @@ fastify.post('/api/accounting/invoices', async (request, reply) => {
   const newInvoice = await db.insert(accountingSchema.invoice).values({
     id: crypto.randomUUID(),
     organizationId: orgId as string,
-    customerId: body.customerId,
+    companyId: body.customerId,
     invoiceNumber: body.invoiceNumber,
     status: 'draft',
     subtotal: body.subtotal || "0",
@@ -135,7 +135,7 @@ const start = async () => {
         await db.insert(accountingSchema.invoice).values({
           id: crypto.randomUUID(),
           organizationId: organizationId,
-          customerId: 'INTERNAL_PAYROLL', // Usually a vendor or internal account
+          companyId: 'INTERNAL_PAYROLL', // Usually a vendor or internal account
           invoiceNumber: `PR-${payrollRunId.split('-')[0]}`,
           status: 'paid',
           subtotal: totalAmount.toString(),

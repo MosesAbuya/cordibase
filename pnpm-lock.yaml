@@ -35,6 +35,9 @@ importers:
       dotenv:
         specifier: ^16.4.5
         version: 16.6.1
+      drizzle-orm:
+        specifier: ^0.30.10
+        version: 0.30.10(@neondatabase/serverless@0.9.5)(@types/pg@8.11.6)(@types/react@19.2.18)(kysely@0.29.5)(react@19.2.8)
       fastify:
         specifier: ^4.26.2
         version: 4.29.1
@@ -88,6 +91,9 @@ importers:
 
   apps/service-crm:
     dependencies:
+      '@cordibase/shared-db':
+        specifier: workspace:*
+        version: link:../../packages/shared-db
       '@google/genai':
         specifier: ^2.19.0
         version: 2.19.0(supports-color@7.2.0)
@@ -97,6 +103,9 @@ importers:
       dotenv:
         specifier: ^16.4.5
         version: 16.6.1
+      drizzle-orm:
+        specifier: ^0.30.10
+        version: 0.30.10(@neondatabase/serverless@0.9.5)(@types/pg@8.11.6)(@types/react@19.2.18)(kysely@0.29.5)(react@19.2.8)
       fastify:
         specifier: ^4.26.2
         version: 4.29.1

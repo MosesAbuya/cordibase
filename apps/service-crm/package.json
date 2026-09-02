@@ -9,9 +9,11 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
+    "@cordibase/shared-db": "workspace:*",
     "@google/genai": "^2.19.0",
     "@react-pdf/renderer": "^4.8.1",
     "dotenv": "^16.4.5",
+    "drizzle-orm": "^0.30.10",
     "fastify": "^4.26.2"
   },
   "devDependencies": {

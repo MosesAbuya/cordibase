@@ -9,11 +9,12 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
+    "@cordibase/shared-db": "workspace:*",
+    "@cordibase/shared-events": "workspace:*",
     "@fastify/cors": "9.0.1",
     "dotenv": "^16.4.5",
-    "fastify": "^4.26.2",
-    "@cordibase/shared-db": "workspace:*",
-    "@cordibase/shared-events": "workspace:*"
+    "drizzle-orm": "^0.30.10",
+    "fastify": "^4.26.2"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
