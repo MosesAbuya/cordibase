@@ -1,30 +1,15 @@
-import Fastify from 'fastify';
-
-import { createDbClient, accountingSchema, crmSchema, authSchema } from '@cordibase/shared-db';
-import { eq, and, inArray } from 'drizzle-orm';
+import { createDbClient, accountingSchema, authSchema } from '@cordibase/shared-db';
+import { eq, and } from 'drizzle-orm';
 import dotenv from 'dotenv';
 import path from 'path';
-import { createPayrollWorker } from '@cordibase/shared-events';
 import { FastifyInstance } from 'fastify';
 
 export default async function pluginRoutes(fastify: FastifyInstance, opts: any) {
 
-
-
-
-
-
-
-// Load env from monorepo root
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
-
 
 const db = createDbClient(process.env.DATABASE_URL!);
 
-// CORS Configuration
-
-
-// Middleware to extract Active Organization ID from cross-service request
 fastify.addHook('preHandler', async (request, reply) => {
   if (request.method === 'OPTIONS') return;
 
@@ -34,10 +19,10 @@ fastify.addHook('preHandler', async (request, reply) => {
   }
 
   try {
-    const authRes = await fetch(`http://127.0.0.1:${process.env.PORT || '3001'}` + '/api/auth/get-session', {
+    const authRes = await fetch((process.env.CORE_SERVICE_INTERNAL_URL || 'http://127.0.0.1:3001') + '/api/auth/get-session', {
       headers: { cookie: cookieHeader || '' }
     });
-    const sessionData = await authRes.json() as any as any;
+    const sessionData = await authRes.json() as any;
 
     if (!sessionData || !sessionData.session) {
       return reply.code(401).send({ error: 'Unauthorized: Invalid session' });
@@ -83,50 +68,13 @@ fastify.addHook('preHandler', async (request, reply) => {
   }
 });
 
-// GET /api/accounting/invoices
-fastify.get('/api/accounting/invoices', async (request, reply) => {
-  const orgId = request.headers['x-org-id'] || (request as any).activeOrganizationId;
-  if (!orgId) {
-    return reply.code(403).send({ error: 'Forbidden: No active organization context' });
-  }
-
-  const invoices = await db.select().from(accountingSchema.invoice).where(eq(accountingSchema.invoice.organizationId, orgId as string));
-  return { invoices };
-});
-
-// POST /api/accounting/invoices
-fastify.post('/api/accounting/invoices', async (request, reply) => {
-  const orgId = request.headers['x-org-id'] || (request as any).activeOrganizationId;
-  if (!orgId) {
-    return reply.code(403).send({ error: 'Forbidden: No active organization context' });
-  }
-
-  const body = request.body as any;
-  if (!body.customerId || !body.invoiceNumber) {
-    return reply.code(400).send({ error: 'Bad Request: customerId and invoiceNumber are required' });
-  }
-
-  const newInvoice = await db.insert(accountingSchema.invoice).values({
-    id: crypto.randomUUID(),
-    organizationId: orgId as string,
-    companyId: body.customerId,
-    invoiceNumber: body.invoiceNumber,
-    status: 'draft',
-    subtotal: body.subtotal || "0",
-    total: body.total || "0",
-    dueDate: new Date(body.dueDate || Date.now()),
-  }).returning();
-
-  return newInvoice[0];
-});
-
-
 // GET /api/accounting/documents
 fastify.get('/api/accounting/documents', async (request: any, reply: any) => {
   const orgId = request.headers['x-org-id'] || request.activeOrganizationId;
   if (!orgId) return reply.code(403).send({ error: 'Forbidden' });
-  const docs = await db.select().from(accountingSchema.document).where(eq(accountingSchema.document.organizationId, orgId as string));
-  return docs;
+  const type = request.query.type as string;
+  const allDocs = await db.select().from(accountingSchema.document).where(eq(accountingSchema.document.organizationId, orgId as string));
+  return type ? allDocs.filter((d: any) => d.type === type) : allDocs;
 });
 
 // GET /api/accounting/documents/:id
@@ -141,16 +89,37 @@ fastify.get('/api/accounting/documents/:id', async (request: any, reply: any) =>
 // POST /api/accounting/documents
 fastify.post('/api/accounting/documents', async (request: any, reply: any) => {
   const orgId = request.headers['x-org-id'] || request.activeOrganizationId;
-  const body = request.body;
+  const body = request.body as any;
   const newDoc = await db.insert(accountingSchema.document).values({
     id: crypto.randomUUID(),
     organizationId: orgId as string,
     type: body.type || 'invoice',
-    refNumber: body.refNumber || 'INV-001',
+    refNumber: body.refNumber || 'DOC-001',
     clientName: body.clientName || 'Unknown',
-    total: body.total || '0'
+    total: body.total || '0',
+    subtotal: body.subtotal || '0',
+    vatAmount: body.vatAmount || '0',
+    vatRate: body.vatRate || '16.00',
+    currency: body.currency || 'KES',
+    issueDate: body.issueDate ? new Date(body.issueDate) : new Date(),
+    dueDate: body.dueDate ? new Date(body.dueDate) : undefined,
+    clientCo: body.clientCo,
+    clientSpec: body.clientSpec,
+    clientAddress: body.clientAddress,
+    notes: body.notes,
+    status: 'draft',
+    sequenceId: 1,
   }).returning();
   return newDoc[0];
+});
+
+// DELETE /api/accounting/documents/:id
+fastify.delete('/api/accounting/documents/:id', async (request: any, reply: any) => {
+  const { id } = request.params;
+  const orgId = request.headers['x-org-id'] || request.activeOrganizationId;
+  await db.delete(accountingSchema.documentLineItem).where(eq(accountingSchema.documentLineItem.documentId, id));
+  await db.delete(accountingSchema.document).where(and(eq(accountingSchema.document.id, id), eq(accountingSchema.document.organizationId, orgId as string)));
+  return { success: true };
 });
 
 // GET /api/accounting/template
@@ -163,7 +132,7 @@ fastify.get('/api/accounting/template', async (request: any, reply: any) => {
 // POST /api/accounting/template
 fastify.post('/api/accounting/template', async (request: any, reply: any) => {
   const orgId = request.headers['x-org-id'] || request.activeOrganizationId;
-  const body = request.body;
+  const body = request.body as any;
   const existing = await db.select().from(accountingSchema.documentTemplate).where(eq(accountingSchema.documentTemplate.organizationId, orgId as string)).limit(1);
   if (existing.length) {
     return (await db.update(accountingSchema.documentTemplate).set(body).where(eq(accountingSchema.documentTemplate.id, existing[0].id)).returning())[0];
@@ -171,12 +140,6 @@ fastify.post('/api/accounting/template', async (request: any, reply: any) => {
     return (await db.insert(accountingSchema.documentTemplate).values({ id: crypto.randomUUID(), organizationId: orgId as string, ...body }).returning())[0];
   }
 });
-
-
-// Worker setup
-
-
-
 
 // GET /api/accounting/settings
 fastify.get('/api/accounting/settings', async (request: any, reply: any) => {
@@ -188,7 +151,7 @@ fastify.get('/api/accounting/settings', async (request: any, reply: any) => {
 // POST /api/accounting/settings
 fastify.post('/api/accounting/settings', async (request: any, reply: any) => {
   const orgId = request.headers['x-org-id'] || request.activeOrganizationId;
-  const body = request.body;
+  const body = request.body as any;
   const existing = await db.select().from(accountingSchema.accountingSettings).where(eq(accountingSchema.accountingSettings.organizationId, orgId as string)).limit(1);
   if (existing.length) {
     return (await db.update(accountingSchema.accountingSettings).set(body).where(eq(accountingSchema.accountingSettings.id, existing[0].id)).returning())[0];
@@ -197,22 +160,53 @@ fastify.post('/api/accounting/settings', async (request: any, reply: any) => {
   }
 });
 
+// GET /api/accounting/categories
+fastify.get('/api/accounting/categories', async (request: any, reply: any) => {
+  const orgId = request.headers['x-org-id'] || request.activeOrganizationId;
+  const type = request.query.type as string;
+
+  const where = type
+    ? and(eq(accountingSchema.transactionCategory.organizationId, orgId as string), eq(accountingSchema.transactionCategory.type, type))
+    : eq(accountingSchema.transactionCategory.organizationId, orgId as string);
+
+  const categories = await db.select().from(accountingSchema.transactionCategory).where(where);
+
+  if (!categories.length) {
+    const defaults = type === 'income'
+      ? ['Sales', 'Services', 'Consulting', 'Grants', 'Other Income']
+      : ['Rent', 'Salaries', 'Utilities', 'Supplies', 'Marketing', 'Travel', 'Other Expense'];
+    return defaults.map((name, i) => ({ id: 'default-' + i, name, type: type || 'expense', organizationId: orgId, isCustom: false }));
+  }
+  return categories;
+});
+
+// POST /api/accounting/categories
+fastify.post('/api/accounting/categories', async (request: any, reply: any) => {
+  const orgId = request.headers['x-org-id'] || request.activeOrganizationId;
+  const body = request.body as any;
+  const newCat = await db.insert(accountingSchema.transactionCategory).values({
+    id: crypto.randomUUID(),
+    organizationId: orgId as string,
+    type: body.type || 'expense',
+    name: body.name,
+    isCustom: true,
+    color: body.color,
+  }).returning();
+  return newCat[0];
+});
+
 // GET /api/accounting/transactions
 fastify.get('/api/accounting/transactions', async (request: any, reply: any) => {
   const orgId = request.headers['x-org-id'] || request.activeOrganizationId;
-  const type = request.query.type;
-  let q = db.select().from(accountingSchema.transaction).where(eq(accountingSchema.transaction.organizationId, orgId as string));
-  const txs = await q;
-  if (type) {
-    return txs.filter((t: any) => t.type === type);
-  }
-  return txs;
+  const type = request.query.type as string;
+  const txs = await db.select().from(accountingSchema.transaction).where(eq(accountingSchema.transaction.organizationId, orgId as string));
+  return type ? txs.filter((t: any) => t.type === type) : txs;
 });
 
 // POST /api/accounting/transactions
 fastify.post('/api/accounting/transactions', async (request: any, reply: any) => {
   const orgId = request.headers['x-org-id'] || request.activeOrganizationId;
-  const body = request.body;
+  const body = request.body as any;
   const newTx = await db.insert(accountingSchema.transaction).values({
     id: crypto.randomUUID(),
     organizationId: orgId as string,
@@ -222,6 +216,8 @@ fastify.post('/api/accounting/transactions', async (request: any, reply: any) =>
     vendorOrSource: body.vendorOrSource,
     currency: body.currency || 'KES',
     date: body.date ? new Date(body.date) : new Date(),
+    categoryId: body.categoryId,
+    notes: body.notes,
   }).returning();
   return newTx[0];
 });
@@ -245,6 +241,11 @@ fastify.delete('/api/accounting/transactions/:id', async (request: any, reply: a
   const orgId = request.headers['x-org-id'] || request.activeOrganizationId;
   await db.delete(accountingSchema.transaction).where(and(eq(accountingSchema.transaction.id, id), eq(accountingSchema.transaction.organizationId, orgId as string)));
   return { success: true };
+});
+
+// POST /api/accounting/transactions/scan (AI receipt scanning stub)
+fastify.post('/api/accounting/transactions/scan', async (request: any, reply: any) => {
+  return { success: false, message: 'AI scanning not yet configured' };
 });
 
 }

@@ -23,6 +23,8 @@ fastify.register(accountingRoutes);
 fastify.register(hrmRoutes);
 
 const start = async () => {
+  process.env.CORE_SERVICE_INTERNAL_URL = http://127.0.0.1:;
+
   try {
     const port = parseInt(process.env.PORT || '3001');
     await fastify.listen({ port, host: '0.0.0.0' });
