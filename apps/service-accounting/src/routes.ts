@@ -1,5 +1,5 @@
 import Fastify from 'fastify';
-import cors from '@fastify/cors';
+
 import { createDbClient, accountingSchema, crmSchema, authSchema } from '@cordibase/shared-db';
 import { eq, and, inArray } from 'drizzle-orm';
 import dotenv from 'dotenv';
@@ -22,10 +22,7 @@ dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 const db = createDbClient(process.env.DATABASE_URL!);
 
 // CORS Configuration
-fastify.register(cors, {
-  origin: true,
-  credentials: true,
-});
+
 
 // Middleware to extract Active Organization ID from cross-service request
 fastify.addHook('preHandler', async (request, reply) => {
