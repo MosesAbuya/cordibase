@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { emailingSchema, authSchema } from "@cordibase/shared-db";
 const { emailAccount, emailAccountAccess } = emailingSchema;
@@ -13,7 +13,7 @@ export async function GET(req: Request) {
 
     const cookieStore = await cookies();
     const cookieHeader = cookieStore.toString();
-    const authRes = await fetch("http://localhost:3001/api/auth/get-session", {
+    const authRes = await fetch(`${process.env.CORE_SERVICE_URL || (process.env.CORE_SERVICE_INTERNAL_URL || 'http://localhost:3001') + ''}/api/auth/get-session`, {
       headers: { cookie: cookieHeader }
     });
     const sessionData = await authRes.json();
@@ -59,7 +59,7 @@ export async function POST(req: Request) {
 
     const cookieStore = await cookies();
     const cookieHeader = cookieStore.toString();
-    const authRes = await fetch("http://localhost:3001/api/auth/get-session", {
+    const authRes = await fetch(`${process.env.CORE_SERVICE_URL || (process.env.CORE_SERVICE_INTERNAL_URL || 'http://localhost:3001') + ''}/api/auth/get-session`, {
       headers: { cookie: cookieHeader }
     });
     const sessionData = await authRes.json();
@@ -100,3 +100,4 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+

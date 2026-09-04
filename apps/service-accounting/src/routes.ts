@@ -34,7 +34,7 @@ fastify.addHook('preHandler', async (request, reply) => {
   }
 
   try {
-    const authRes = await fetch('http://localhost:3001/api/auth/get-session', {
+    const authRes = await fetch(`http://127.0.0.1:${process.env.PORT || '3001'}` + '/api/auth/get-session', {
       headers: { cookie: cookieHeader || '' }
     });
     const sessionData = await authRes.json() as any as any;

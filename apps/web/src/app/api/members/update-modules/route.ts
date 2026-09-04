@@ -6,7 +6,7 @@ import { eq, and } from "drizzle-orm";
 export async function POST(req: Request) {
   try {
     const cookieHeader = req.headers.get('cookie') || '';
-    const authRes = await fetch('http://localhost:3001/api/auth/get-session', { headers: { cookie: cookieHeader } });
+    const authRes = await fetch(`${process.env.CORE_SERVICE_URL || (process.env.CORE_SERVICE_INTERNAL_URL || 'http://localhost:3001') + ''}/api/auth/get-session`, { headers: { cookie: cookieHeader } });
     const sessionData = await authRes.json();
     const userId = sessionData?.user?.id;
     if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -23,3 +23,4 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+

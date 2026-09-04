@@ -73,7 +73,7 @@ fastify.post('/api/core/billing/checkout', async (request, reply) => {
   const cookieHeader = request.headers.cookie;
   if (!cookieHeader) return reply.code(401).send({ error: 'Unauthorized' });
 
-  const authRes = await fetch('http://localhost:3001/api/auth/get-session', {
+  const authRes = await fetch(`http://127.0.0.1:${process.env.PORT || '3001'}` + '/api/auth/get-session', {
     headers: { cookie: cookieHeader }
   });
   const sessionData = await authRes.json() as any;
@@ -147,7 +147,7 @@ fastify.get('/api/core/billing/subscriptions', async (request, reply) => {
   const cookieHeader = request.headers.cookie;
   if (!cookieHeader) return reply.code(401).send({ error: 'Unauthorized' });
 
-  const authRes = await fetch('http://localhost:3001/api/auth/get-session', {
+  const authRes = await fetch(`http://127.0.0.1:${process.env.PORT || '3001'}` + '/api/auth/get-session', {
     headers: { cookie: cookieHeader }
   });
   const sessionData = await authRes.json() as any;
@@ -166,7 +166,7 @@ fastify.post('/api/core/billing/verify', async (request, reply) => {
   const cookieHeader = request.headers.cookie;
   if (!cookieHeader) return reply.code(401).send({ error: 'Unauthorized' });
 
-  const authRes = await fetch('http://localhost:3001/api/auth/get-session', {
+  const authRes = await fetch(`http://127.0.0.1:${process.env.PORT || '3001'}` + '/api/auth/get-session', {
     headers: { cookie: cookieHeader }
   });
   const sessionData = await authRes.json() as any;
@@ -215,7 +215,7 @@ fastify.get('/api/core/organization/members', async (request, reply) => {
   const cookieHeader = request.headers.cookie;
   if (!cookieHeader) return reply.code(401).send({ error: 'Unauthorized' });
 
-  const authRes = await fetch('http://localhost:3001/api/auth/get-session', { headers: { cookie: cookieHeader } });
+  const authRes = await fetch(`http://127.0.0.1:${process.env.PORT || '3001'}` + '/api/auth/get-session', { headers: { cookie: cookieHeader } });
   const sessionData = await authRes.json() as any;
 
   // Use userId from session (always present) — don't rely on activeOrganizationId
@@ -279,7 +279,7 @@ fastify.delete('/api/core/organization/members/:id', async (request, reply) => {
   const cookieHeader = request.headers.cookie;
   if (!cookieHeader) return reply.code(401).send({ error: 'Unauthorized' });
 
-  const authRes = await fetch('http://localhost:3001/api/auth/get-session', { headers: { cookie: cookieHeader } });
+  const authRes = await fetch(`http://127.0.0.1:${process.env.PORT || '3001'}` + '/api/auth/get-session', { headers: { cookie: cookieHeader } });
   const sessionData = await authRes.json() as any;
   const userId = sessionData?.user?.id;
   if (!userId) return reply.code(401).send({ error: 'Unauthorized' });
@@ -310,7 +310,7 @@ fastify.get('/api/core/notifications', async (request, reply) => {
   const cookieHeader = request.headers.cookie;
   if (!cookieHeader) return { notifications: [] };
 
-  const authRes = await fetch('http://localhost:3001/api/auth/get-session', { headers: { cookie: cookieHeader } });
+  const authRes = await fetch(`http://127.0.0.1:${process.env.PORT || '3001'}` + '/api/auth/get-session', { headers: { cookie: cookieHeader } });
   const sessionData = await authRes.json() as any;
   const orgId = sessionData?.session?.activeOrganizationId;
   if (!orgId) return { notifications: [] };
@@ -335,7 +335,7 @@ fastify.get('/api/core/search', async (request, reply) => {
   const cookieHeader = request.headers.cookie;
   if (!cookieHeader) return { results: [] };
 
-  const authRes = await fetch('http://localhost:3001/api/auth/get-session', { headers: { cookie: cookieHeader } });
+  const authRes = await fetch(`http://127.0.0.1:${process.env.PORT || '3001'}` + '/api/auth/get-session', { headers: { cookie: cookieHeader } });
   const sessionData = await authRes.json() as any;
   const orgId = sessionData?.session?.activeOrganizationId;
   if (!orgId) return { results: [] };
@@ -373,7 +373,7 @@ fastify.post("/api/settings/smtp", async (request, reply) => {
   const cookieHeader = request.headers.cookie;
   if (!cookieHeader) return reply.code(401).send({ error: "Unauthorized" });
 
-  const authRes = await fetch("http://localhost:3001/api/auth/get-session", { headers: { cookie: cookieHeader } });
+  const authRes = await fetch(`${process.env.CORE_SERVICE_URL || 'http://localhost:3001'}/api/auth/get-session`, { headers: { cookie: cookieHeader } });
   const sessionData = await authRes.json() as any;
   const orgId = sessionData?.session?.activeOrganizationId;
   if (!orgId) return reply.code(401).send({ error: "Unauthorized" });
