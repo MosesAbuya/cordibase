@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "./dist/index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "pnpm --filter @cordibase/service-core build && pnpm --filter @cordibase/service-crm build && pnpm --filter @cordibase/service-accounting build && pnpm --filter @cordibase/service-hrm build && tsc",
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
     "clean": "rm -rf dist"
