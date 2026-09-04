@@ -178,4 +178,73 @@ fastify.post('/api/accounting/template', async (request: any, reply: any) => {
 
 
 
+// GET /api/accounting/settings
+fastify.get('/api/accounting/settings', async (request: any, reply: any) => {
+  const orgId = request.headers['x-org-id'] || request.activeOrganizationId;
+  const settings = await db.select().from(accountingSchema.accountingSettings).where(eq(accountingSchema.accountingSettings.organizationId, orgId as string)).limit(1);
+  return settings[0] || {};
+});
+
+// POST /api/accounting/settings
+fastify.post('/api/accounting/settings', async (request: any, reply: any) => {
+  const orgId = request.headers['x-org-id'] || request.activeOrganizationId;
+  const body = request.body;
+  const existing = await db.select().from(accountingSchema.accountingSettings).where(eq(accountingSchema.accountingSettings.organizationId, orgId as string)).limit(1);
+  if (existing.length) {
+    return (await db.update(accountingSchema.accountingSettings).set(body).where(eq(accountingSchema.accountingSettings.id, existing[0].id)).returning())[0];
+  } else {
+    return (await db.insert(accountingSchema.accountingSettings).values({ id: crypto.randomUUID(), organizationId: orgId as string, ...body }).returning())[0];
+  }
+});
+
+// GET /api/accounting/transactions
+fastify.get('/api/accounting/transactions', async (request: any, reply: any) => {
+  const orgId = request.headers['x-org-id'] || request.activeOrganizationId;
+  const type = request.query.type;
+  let q = db.select().from(accountingSchema.transaction).where(eq(accountingSchema.transaction.organizationId, orgId as string));
+  const txs = await q;
+  if (type) {
+    return txs.filter((t: any) => t.type === type);
+  }
+  return txs;
+});
+
+// POST /api/accounting/transactions
+fastify.post('/api/accounting/transactions', async (request: any, reply: any) => {
+  const orgId = request.headers['x-org-id'] || request.activeOrganizationId;
+  const body = request.body;
+  const newTx = await db.insert(accountingSchema.transaction).values({
+    id: crypto.randomUUID(),
+    organizationId: orgId as string,
+    type: body.type || 'expense',
+    amount: body.amount,
+    description: body.description || '',
+    vendorOrSource: body.vendorOrSource,
+    currency: body.currency || 'KES',
+    date: body.date ? new Date(body.date) : new Date(),
+  }).returning();
+  return newTx[0];
+});
+
+// GET /api/accounting/transactions/summary
+fastify.get('/api/accounting/transactions/summary', async (request: any, reply: any) => {
+  const orgId = request.headers['x-org-id'] || request.activeOrganizationId;
+  const txs = await db.select().from(accountingSchema.transaction).where(eq(accountingSchema.transaction.organizationId, orgId as string));
+  let income = 0;
+  let expenses = 0;
+  txs.forEach((t: any) => {
+    if (t.type === 'income') income += parseFloat(t.amount || '0');
+    if (t.type === 'expense') expenses += parseFloat(t.amount || '0');
+  });
+  return { income, expenses, balance: income - expenses };
+});
+
+// DELETE /api/accounting/transactions/:id
+fastify.delete('/api/accounting/transactions/:id', async (request: any, reply: any) => {
+  const { id } = request.params;
+  const orgId = request.headers['x-org-id'] || request.activeOrganizationId;
+  await db.delete(accountingSchema.transaction).where(and(eq(accountingSchema.transaction.id, id), eq(accountingSchema.transaction.organizationId, orgId as string)));
+  return { success: true };
+});
+
 }
