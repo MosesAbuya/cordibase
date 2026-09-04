@@ -4,9 +4,9 @@
   "main": "./dist/index.js",
   "scripts": {
     "build": "tsc",
-    "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "dev:micro": "tsx watch src/index.ts"
   },
   "dependencies": {
     "@cordibase/shared-db": "workspace:*",

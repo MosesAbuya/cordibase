@@ -1,0 +1,201 @@
+import Fastify from 'fastify';
+import cors from '@fastify/cors';
+import { createDbClient, hrmSchema, authSchema } from '@cordibase/shared-db';
+import { eq, and, inArray } from 'drizzle-orm';
+import dotenv from 'dotenv';
+import path from 'path';
+import { FastifyInstance } from 'fastify';
+
+export default async function pluginRoutes(fastify: FastifyInstance, opts: any) {
+
+
+
+
+
+
+
+// Load env from monorepo root
+dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
+
+
+const db = createDbClient(process.env.DATABASE_URL!);
+
+// CORS Configuration
+fastify.register(cors, {
+  origin: true,
+  credentials: true,
+});
+
+// Middleware to extract Active Organization ID from cross-service request
+fastify.addHook('preHandler', async (request, reply) => {
+  if (request.method === 'OPTIONS' || request.url === '/health') return;
+
+  const cookieHeader = request.headers.cookie;
+  if (!cookieHeader && !request.headers['x-org-id']) {
+    return reply.code(401).send({ error: 'Unauthorized: No session cookie or org header provided' });
+  }
+
+  try {
+    const authRes = await fetch('http://localhost:3001/api/auth/get-session', {
+      headers: { cookie: cookieHeader || '' }
+    });
+    const sessionData = await authRes.json() as any as any;
+
+    if (!sessionData || !sessionData.session) {
+      return reply.code(401).send({ error: 'Unauthorized: Invalid session' });
+    }
+
+    (request as any).user = sessionData.user;
+    const userId = sessionData.user.id;
+    const requestedOrgId = request.headers['x-org-id'] || sessionData.session.activeOrganizationId;
+
+    let orgId = requestedOrgId;
+    let memberRecord: any = null;
+
+    if (orgId) {
+      const memberships = await db.select().from(authSchema.member).where(and(eq(authSchema.member.userId, userId), eq(authSchema.member.organizationId, orgId as string))).limit(1);
+      memberRecord = memberships[0];
+    }
+
+    if (!memberRecord) {
+      const memberships = await db.select().from(authSchema.member).where(eq(authSchema.member.userId, userId)).limit(1);
+      memberRecord = memberships[0];
+      orgId = memberRecord?.organizationId;
+    }
+
+    if (memberRecord) {
+      (request as any).activeOrganizationId = orgId;
+      (request as any).member = memberRecord;
+
+      if (memberRecord.role !== 'owner' && memberRecord.role !== 'admin') {
+        let allowedModules: any[] = [];
+        try {
+          allowedModules = typeof (memberRecord as any).modules === 'string' ? JSON.parse((memberRecord as any).modules) : ((memberRecord as any).modules || []);
+        } catch(e) {}
+        if (!allowedModules.includes('hrm')) {
+          return reply.code(403).send({ error: 'Forbidden: Missing hrm module access' });
+        }
+      }
+    } else {
+      (request as any).activeOrganizationId = null;
+    }
+  } catch (error) {
+    request.log.error(error);
+    return reply.code(500).send({ error: 'Internal Server Error validating session' });
+  }
+});
+
+fastify.get('/health', async (request, reply) => {
+  return { status: 'ok', service: 'service-hrm' };
+});
+
+// GET /api/hrm/employees
+fastify.get('/api/hrm/employees', async (request, reply) => {
+  const orgId = request.headers['x-org-id'] || (request as any).activeOrganizationId;
+  if (!orgId) {
+    return reply.code(403).send({ error: 'Forbidden: No active organization context' });
+  }
+
+  const employees = await db.select().from(hrmSchema.employee).where(eq(hrmSchema.employee.organizationId, orgId as string));
+  return { employees };
+});
+
+// POST /api/hrm/employees
+fastify.post('/api/hrm/employees', async (request, reply) => {
+  const orgId = request.headers['x-org-id'] || (request as any).activeOrganizationId;
+  if (!orgId) {
+    return reply.code(403).send({ error: 'Forbidden: No active organization context' });
+  }
+
+  const body = request.body as any;
+  if (!body.firstName || !body.lastName || !body.email || !body.position || !body.salary) {
+    return reply.code(400).send({ error: 'Bad Request: Missing required fields' });
+  }
+
+  const newEmployee = await db.insert(hrmSchema.employee).values({
+    id: crypto.randomUUID(),
+    organizationId: orgId as string,
+    firstName: body.firstName,
+    lastName: body.lastName,
+    email: body.email,
+    phone: body.phone,
+    position: body.position,
+    salary: parseInt(body.salary, 10), // stored in cents
+    hireDate: new Date(body.hireDate || Date.now()).toISOString().split('T')[0],
+  }).returning();
+
+  return { employee: newEmployee[0] };
+});
+
+// POST /api/hrm/payroll/run
+fastify.post('/api/hrm/payroll/run', async (request, reply) => {
+  const orgId = request.headers['x-org-id'] || (request as any).activeOrganizationId;
+  if (!orgId) {
+    return reply.code(403).send({ error: 'Forbidden: No active organization context' });
+  }
+
+  const { periodStart, periodEnd } = request.body as any;
+
+  // 1. Fetch all active employees
+  const employees = await db.select().from(hrmSchema.employee)
+    .where(eq(hrmSchema.employee.organizationId, orgId as string));
+
+  if (employees.length === 0) {
+    return reply.code(400).send({ error: 'No active employees found to run payroll.' });
+  }
+
+  let totalAmount = 0;
+  const payrollItems: any[] = [];
+
+  // 2. Create Payroll Run draft
+  const runId = crypto.randomUUID();
+
+  for (const emp of employees) {
+    const grossPay = emp.salary; // simplistic: full monthly salary
+    const deductions = Math.floor(grossPay * 0.1); // simplistic 10% tax
+    const netPay = grossPay - deductions;
+
+    totalAmount += netPay;
+    payrollItems.push({
+      id: crypto.randomUUID(),
+      organizationId: orgId as string,
+      payrollRunId: runId,
+      employeeId: emp.id,
+      grossPay,
+      deductions,
+      netPay,
+    });
+  }
+
+  const [newRun] = await db.insert(hrmSchema.payrollRun).values({
+    id: runId,
+    organizationId: orgId as string,
+    periodStart: new Date(periodStart || Date.now()).toISOString().split('T')[0],
+    periodEnd: new Date(periodEnd || Date.now()).toISOString().split('T')[0],
+    totalAmount,
+    status: 'processed',
+    processedAt: new Date(),
+  }).returning();
+
+  await db.insert(hrmSchema.payrollItem).values(payrollItems);
+
+  // 3. Dispatch BullMQ event to Accounting
+  try {
+    const { getPayrollQueue } = await import('@cordibase/shared-events');
+    const queue = getPayrollQueue();
+    await queue.add('hrm.payroll.run', {
+      organizationId: orgId,
+      payrollRunId: newRun.id,
+      totalAmount: newRun.totalAmount,
+    });
+    console.log(`Dispatched payroll run event for Run ID: ${newRun.id}`);
+  } catch (err) {
+    console.error('Failed to dispatch payroll event:', err);
+  }
+
+  return { payrollRun: newRun, itemsCount: payrollItems.length };
+});
+
+
+
+}

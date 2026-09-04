@@ -151,6 +151,37 @@ importers:
         specifier: ^5.5.0
         version: 5.9.3
 
+  apps/service-monolith:
+    dependencies:
+      '@cordibase/service-accounting':
+        specifier: workspace:*
+        version: link:../service-accounting
+      '@cordibase/service-core':
+        specifier: workspace:*
+        version: link:../service-core
+      '@cordibase/service-crm':
+        specifier: workspace:*
+        version: link:../service-crm
+      '@cordibase/service-hrm':
+        specifier: workspace:*
+        version: link:../service-hrm
+      dotenv:
+        specifier: ^16.4.5
+        version: 16.6.1
+      fastify:
+        specifier: ^5.12.1
+        version: 5.12.1
+    devDependencies:
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.43
+      tsx:
+        specifier: ^4.7.2
+        version: 4.23.12
+      typescript:
+        specifier: ^5.5.0
+        version: 5.9.3
+
   apps/web:
     dependencies:
       '@cordibase/shared-db':

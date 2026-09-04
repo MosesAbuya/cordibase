@@ -3,9 +3,9 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   async rewrites() {
     const coreUrl = process.env.CORE_SERVICE_URL || 'http://127.0.0.1:3001';
-    const crmUrl = process.env.CRM_SERVICE_URL || 'http://127.0.0.1:3002';
-    const accountingUrl = process.env.ACCOUNTING_SERVICE_URL || 'http://127.0.0.1:3003';
-    const hrmUrl = process.env.HRM_SERVICE_URL || 'http://127.0.0.1:3004';
+    const crmUrl = process.env.CRM_SERVICE_URL || 'http://127.0.0.1:3001';
+    const accountingUrl = process.env.ACCOUNTING_SERVICE_URL || 'http://127.0.0.1:3001';
+    const hrmUrl = process.env.HRM_SERVICE_URL || 'http://127.0.0.1:3001';
 
     return [
       {

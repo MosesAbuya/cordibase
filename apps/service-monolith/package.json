@@ -1,0 +1,24 @@
+{
+  "name": "@cordibase/service-monolith",
+  "version": "1.0.0",
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@cordibase/service-core": "workspace:*",
+    "@cordibase/service-crm": "workspace:*",
+    "@cordibase/service-accounting": "workspace:*",
+    "@cordibase/service-hrm": "workspace:*",
+    "dotenv": "^16.4.5",
+    "fastify": "^5.12.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.7.2",
+    "typescript": "^5.5.0"
+  }
+}
