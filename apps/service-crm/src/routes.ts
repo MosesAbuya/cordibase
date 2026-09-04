@@ -34,7 +34,7 @@ fastify.addHook('preHandler', async (request, reply) => {
   }
 
   try {
-    const coreRes = await fetch(`http://127.0.0.1:${process.env.PORT || '3001'}` + '/api/auth/get-session', {
+    const coreRes = await fetch((process.env.CORE_SERVICE_INTERNAL_URL || 'http://127.0.0.1:3001') + '/api/auth/get-session', {
       headers: { 'Cookie': cookieHeader, 'authorization': request.headers['authorization'] || '' }
     });
     if (!coreRes.ok) throw new Error('Invalid session');
