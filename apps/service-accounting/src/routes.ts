@@ -74,7 +74,9 @@ fastify.get('/api/accounting/documents', async (request: any, reply: any) => {
   if (!orgId) return reply.code(403).send({ error: 'Forbidden' });
   const type = request.query.type as string;
   const allDocs = await db.select().from(accountingSchema.document).where(eq(accountingSchema.document.organizationId, orgId as string));
-  return type ? allDocs.filter((d: any) => d.type === type) : allDocs;
+  const filtered = type ? allDocs.filter((d: any) => d.type === type) : allDocs;
+  // Return wrapped in { documents } since frontend does data.documents
+  return { documents: filtered };
 });
 
 // GET /api/accounting/documents/:id
@@ -200,7 +202,9 @@ fastify.get('/api/accounting/transactions', async (request: any, reply: any) => 
   const orgId = request.headers['x-org-id'] || request.activeOrganizationId;
   const type = request.query.type as string;
   const txs = await db.select().from(accountingSchema.transaction).where(eq(accountingSchema.transaction.organizationId, orgId as string));
-  return type ? txs.filter((t: any) => t.type === type) : txs;
+  const filtered = type ? txs.filter((t: any) => t.type === type) : txs;
+  // Return wrapped in { transactions } since frontend does data.transactions
+  return { transactions: filtered };
 });
 
 // POST /api/accounting/transactions
@@ -226,13 +230,13 @@ fastify.post('/api/accounting/transactions', async (request: any, reply: any) =>
 fastify.get('/api/accounting/transactions/summary', async (request: any, reply: any) => {
   const orgId = request.headers['x-org-id'] || request.activeOrganizationId;
   const txs = await db.select().from(accountingSchema.transaction).where(eq(accountingSchema.transaction.organizationId, orgId as string));
-  let income = 0;
-  let expenses = 0;
+  let totalIncome = 0;
+  let totalExpenses = 0;
   txs.forEach((t: any) => {
-    if (t.type === 'income') income += parseFloat(t.amount || '0');
-    if (t.type === 'expense') expenses += parseFloat(t.amount || '0');
+    if (t.type === 'income') totalIncome += parseFloat(t.amount || '0');
+    if (t.type === 'expense') totalExpenses += parseFloat(t.amount || '0');
   });
-  return { income, expenses, balance: income - expenses };
+  return { totalIncome, totalExpenses, netPL: totalIncome - totalExpenses };
 });
 
 // DELETE /api/accounting/transactions/:id
