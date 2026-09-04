@@ -23,7 +23,7 @@ export default function AccountingSettings() {
 
   const fetchSettings = async () => {
     try {
-      const res = await fetch("/api/crm/accounting/settings");
+      const res = await fetch("/api/accounting/settings");
       if (res.ok) {
         const data = await res.json();
         setForm({
@@ -42,7 +42,7 @@ export default function AccountingSettings() {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch("/api/crm/accounting/settings", {
+      const res = await fetch("/api/accounting/settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form)

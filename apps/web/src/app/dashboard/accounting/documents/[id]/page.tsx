@@ -21,7 +21,7 @@ export default function DocumentDetail() {
 
   const fetchDoc = async () => {
     try {
-      const res = await fetch(`/api/crm/accounting/documents/${id}`);
+      const res = await fetch(`/api/accounting/documents/${id}`);
       if (!res.ok) throw new Error("Document not found");
       const data = await res.json();
       setDoc(data.document);
@@ -37,7 +37,7 @@ export default function DocumentDetail() {
 
   const markAsPaid = async () => {
     try {
-      const res = await fetch(`/api/crm/accounting/documents/${id}`, {
+      const res = await fetch(`/api/accounting/documents/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "paid" })
@@ -53,7 +53,7 @@ export default function DocumentDetail() {
     const confirmed = await modal.confirm("Delete Document", "Are you sure you want to delete this document? This cannot be undone.");
     if (!confirmed) return;
     try {
-      await fetch(`/api/crm/accounting/documents/${id}`, { method: "DELETE" });
+      await fetch(`/api/accounting/documents/${id}`, { method: "DELETE" });
       router.push("/dashboard/accounting");
     } catch (e) {}
   };
@@ -79,15 +79,15 @@ export default function DocumentDetail() {
                 </button>
               )}
               
-              <button onClick={() => window.open(`https://wa.me/?text=Here is the document ${doc.refNumber}: ${window.location.origin}/api/crm/accounting/documents/${id}/pdf`, '_blank')} className="text-[#25D366] bg-[#25D366]/10 hover:bg-[#25D366]/20 px-4 py-1.5 rounded-[6px] text-[13px] font-medium flex items-center transition-colors shadow-sm" title="Share via WhatsApp">
+              <button onClick={() => window.open(`https://wa.me/?text=Here is the document ${doc.refNumber}: ${window.location.origin}/api/accounting/documents/${id}/pdf`, '_blank')} className="text-[#25D366] bg-[#25D366]/10 hover:bg-[#25D366]/20 px-4 py-1.5 rounded-[6px] text-[13px] font-medium flex items-center transition-colors shadow-sm" title="Share via WhatsApp">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1.5"><path d="M3 21l1.65-3.8a9 9 0 1 1 3.4 2.9L3 21"></path><path d="M9 10a.5.5 0 0 0 1 0V9a.5.5 0 0 0-1 0v1a5 5 0 0 0 5 5h1a.5.5 0 0 0 0-1h-1a.5.5 0 0 0 0 1"></path></svg> WhatsApp
               </button>
               
-              <button onClick={() => window.location.href = `mailto:?subject=Document ${doc.refNumber}&body=Here is the document: ${window.location.origin}/api/crm/accounting/documents/${id}/pdf`} className="text-ink/60 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 px-4 py-1.5 rounded-[6px] text-[13px] font-medium flex items-center transition-colors shadow-sm" title="Share via Email">
+              <button onClick={() => window.location.href = `mailto:?subject=Document ${doc.refNumber}&body=Here is the document: ${window.location.origin}/api/accounting/documents/${id}/pdf`} className="text-ink/60 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 px-4 py-1.5 rounded-[6px] text-[13px] font-medium flex items-center transition-colors shadow-sm" title="Share via Email">
                 <Mail size={14} className="mr-1.5" /> Email
               </button>
 
-              <a href={`/api/crm/accounting/documents/${id}/pdf?download=true`} target="_blank" rel="noreferrer" className="text-white bg-thread hover:bg-[#8B3125] px-4 py-1.5 rounded-[6px] text-[13px] font-medium flex items-center transition-colors shadow-sm">
+              <a href={`/api/accounting/documents/${id}/pdf?download=true`} target="_blank" rel="noreferrer" className="text-white bg-thread hover:bg-[#8B3125] px-4 py-1.5 rounded-[6px] text-[13px] font-medium flex items-center transition-colors shadow-sm">
                 <Download size={14} className="mr-1.5" /> Download PDF
               </a>
               

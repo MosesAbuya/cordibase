@@ -32,7 +32,7 @@ export default function DocumentBuilder() {
 
   const fetchSettings = async () => {
     try {
-      const res = await fetch("/api/crm/accounting/settings");
+      const res = await fetch("/api/accounting/settings");
       if (res.ok) {
         const data = await res.json();
         setSettings(data);
@@ -83,7 +83,7 @@ export default function DocumentBuilder() {
         }))
       };
 
-      const res = await fetch("/api/crm/accounting/documents", {
+      const res = await fetch("/api/accounting/documents", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)

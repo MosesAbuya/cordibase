@@ -37,7 +37,7 @@ export default function AddTransaction() {
 
   const fetchCategories = async () => {
     try {
-      const res = await fetch(`/api/crm/accounting/categories?type=${form.type}`);
+      const res = await fetch(`/api/accounting/categories?type=${form.type}`);
       if (res.ok) {
         const data = await res.json();
         setCategories(data.categories || []);
@@ -67,7 +67,7 @@ export default function AddTransaction() {
           reader.onerror = error => reject(error);
         });
 
-        const res = await fetch("/api/crm/accounting/transactions/scan", {
+        const res = await fetch("/api/accounting/transactions/scan", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -118,7 +118,7 @@ export default function AddTransaction() {
     
     setLoading(true);
     try {
-      const res = await fetch("/api/crm/accounting/transactions", {
+      const res = await fetch("/api/accounting/transactions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form)

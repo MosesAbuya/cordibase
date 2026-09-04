@@ -10,7 +10,7 @@ export default function AccountingReports() {
   useEffect(() => {
     const fetchSummary = async () => {
       try {
-        const res = await fetch("/api/crm/accounting/transactions/summary");
+        const res = await fetch("/api/accounting/transactions/summary");
         if (res.ok) {
           const json = await res.json();
           setData(json);

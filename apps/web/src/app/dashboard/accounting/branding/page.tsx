@@ -39,7 +39,7 @@ export default function BrandingSettings() {
 
   const fetchTemplate = async () => {
     try {
-      const res = await fetch("/api/crm/accounting/template");
+      const res = await fetch("/api/accounting/template");
       if (res.ok) {
         const data = await res.json();
         setForm(prev => ({ ...prev, ...data }));
@@ -54,7 +54,7 @@ export default function BrandingSettings() {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch("/api/crm/accounting/template", {
+      const res = await fetch("/api/accounting/template", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form)

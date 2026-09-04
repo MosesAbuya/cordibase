@@ -19,7 +19,7 @@ export default function AccountingPage() {
   const fetchDocuments = async () => {
     setLoading(true);
     try {
-      const url = filterType === "all" ? "/api/crm/accounting/documents" : `/api/crm/accounting/documents?type=${filterType}`;
+      const url = filterType === "all" ? "/api/accounting/documents" : `/api/accounting/documents?type=${filterType}`;
       const res = await fetch(url);
       if (!res.ok) throw new Error("Failed to fetch documents");
       const data = await res.json();
@@ -36,7 +36,7 @@ export default function AccountingPage() {
     if (!confirmed) return;
 
     try {
-      const res = await fetch(`/api/crm/accounting/documents/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/accounting/documents/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Failed to delete");
       setDocuments(documents.filter(d => d.id !== id));
     } catch (error: any) {
@@ -172,13 +172,13 @@ export default function AccountingPage() {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                      <Link href={`/api/crm/accounting/documents/${doc.id}/pdf?download=true`} target="_blank" className="p-1.5 text-ink/60 hover:bg-linen dark:hover:bg-slate-700 rounded transition-colors" title="Download PDF">
+                                                      <Link href={`/api/accounting/documents/${doc.id}/pdf?download=true`} target="_blank" className="p-1.5 text-ink/60 hover:bg-linen dark:hover:bg-slate-700 rounded transition-colors" title="Download PDF">
                               <Download size={16} />
                             </Link>
-                            <button onClick={() => window.open(`https://wa.me/?text=Here is the document ${doc.refNumber}: ${window.location.origin}/api/crm/accounting/documents/${doc.id}/pdf`, '_blank')} className="p-1.5 text-[#25D366] hover:bg-[#25D366]/10 rounded transition-colors" title="Share via WhatsApp">
+                            <button onClick={() => window.open(`https://wa.me/?text=Here is the document ${doc.refNumber}: ${window.location.origin}/api/accounting/documents/${doc.id}/pdf`, '_blank')} className="p-1.5 text-[#25D366] hover:bg-[#25D366]/10 rounded transition-colors" title="Share via WhatsApp">
                               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 21l1.65-3.8a9 9 0 1 1 3.4 2.9L3 21"></path><path d="M9 10a.5.5 0 0 0 1 0V9a.5.5 0 0 0-1 0v1a5 5 0 0 0 5 5h1a.5.5 0 0 0 0-1h-1a.5.5 0 0 0 0 1"></path></svg>
                             </button>
-                            <button onClick={() => window.location.href = `mailto:?subject=Document ${doc.refNumber}&body=Here is the document: ${window.location.origin}/api/crm/accounting/documents/${doc.id}/pdf`} className="p-1.5 text-ink/60 hover:bg-linen dark:hover:bg-slate-700 rounded transition-colors" title="Share via Email">
+                            <button onClick={() => window.location.href = `mailto:?subject=Document ${doc.refNumber}&body=Here is the document: ${window.location.origin}/api/accounting/documents/${doc.id}/pdf`} className="p-1.5 text-ink/60 hover:bg-linen dark:hover:bg-slate-700 rounded transition-colors" title="Share via Email">
                               <Mail size={16} />
                             </button>
                             <button onClick={() => handleDelete(doc.id, doc.refNumber)} className="p-1.5 text-[#F04438] hover:bg-[#F04438]/10 rounded transition-colors" title="Delete">

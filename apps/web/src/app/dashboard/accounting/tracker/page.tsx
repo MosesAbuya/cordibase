@@ -20,10 +20,10 @@ export default function TrackerPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const url = filterType === "all" ? "/api/crm/accounting/transactions" : `/api/crm/accounting/transactions?type=${filterType}`;
+      const url = filterType === "all" ? "/api/accounting/transactions" : `/api/accounting/transactions?type=${filterType}`;
       const [txRes, sumRes] = await Promise.all([
         fetch(url),
-        fetch("/api/crm/accounting/transactions/summary")
+        fetch("/api/accounting/transactions/summary")
       ]);
       
       if (txRes.ok) {
@@ -44,7 +44,7 @@ export default function TrackerPage() {
     const confirmed = await modal.confirm("Delete Transaction", `Are you sure you want to delete "${desc}"?`);
     if (!confirmed) return;
     try {
-      await fetch(`/api/crm/accounting/transactions/${id}`, { method: "DELETE" });
+      await fetch(`/api/accounting/transactions/${id}`, { method: "DELETE" });
       fetchData();
     } catch (e) {}
   };
