@@ -85,9 +85,7 @@ fastify.addHook('preHandler', async (request, reply) => {
   }
 });
 
-fastify.get('/health', async (request, reply) => {
-  return { status: 'ok', service: 'service-hrm' };
-});
+
 
 // GET /api/hrm/employees
 fastify.get('/api/hrm/employees', async (request, reply) => {
