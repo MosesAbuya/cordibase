@@ -142,7 +142,7 @@ export default function BrandingSettings() {
   .watermark { position: absolute; left: -10mm; bottom: -10mm; width: 90mm; height: 90mm; opacity: 0.15; transform: rotate(35deg); z-index: 1; pointer-events: none; }
   .watermark img { width: 100%; height: 100%; object-fit: contain; }
   
-  html { transform: scale(0.65); transform-origin: top left; width: 153%; height: 153%; }
+  
   body { background: transparent; }
   .meta-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2mm; }
   .label-box { margin-bottom: 2mm; }
@@ -237,7 +237,7 @@ const receiptPreviewHtml = `<!DOCTYPE html>
 <html>
 <head>
 <style>
-  html { transform: scale(0.65); transform-origin: top left; width: 153%; height: 153%; }
+  
   .receipt-view {
     --receipt-red: #E31E26;
     --receipt-black: #1a1a1a;
@@ -503,8 +503,10 @@ const receiptPreviewHtml = `<!DOCTYPE html>
               </div>
             </div>
             
-            <div className="bg-white shadow-xl border border-gray-200 overflow-hidden relative pointer-events-none rounded-[4px]" style={{ width: '100%', aspectRatio: '210/297' }}>
-              <iframe srcDoc={activeHtml} className="w-full h-full border-none" />
+            <div className="bg-slate-50 dark:bg-slate-900/50 rounded-lg overflow-hidden flex justify-center items-start pt-4" style={{ height: '600px' }}>
+              <div className="bg-white shadow-xl pointer-events-none transition-all" style={{ width: '210mm', height: '297mm', transform: 'scale(0.5)', transformOrigin: 'top center' }}>
+                <iframe srcDoc={activeHtml} className="w-full h-full border-none" />
+              </div>
             </div>
           </div>
         </div>
