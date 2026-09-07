@@ -47,8 +47,18 @@ export default function DocumentDetail() {
   const handlePrint = () => {
     const iframe = document.getElementById('print-iframe') as HTMLIFrameElement;
     if (iframe && iframe.contentWindow) {
+      const originalTitle = document.title;
+      const pdfTitle = `${docTypeLabel} - ${doc.refNumber || 'Draft'} - ${doc.clientName || 'Client'}`;
+      
+      document.title = pdfTitle;
+      iframe.contentWindow.document.title = pdfTitle;
+      
       iframe.contentWindow.focus();
       iframe.contentWindow.print();
+      
+      setTimeout(() => {
+        document.title = originalTitle;
+      }, 1000);
     }
   };
 
@@ -68,6 +78,7 @@ export default function DocumentDetail() {
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<title>${docTypeLabel} - ${doc.refNumber || 'Draft'} - ${doc.clientName || 'Client'}</title>
 <style>
   @page { size: A4; margin: 0; }
   * { box-sizing: border-box; }
@@ -237,6 +248,7 @@ export default function DocumentDetail() {
 <html>
 <head>
 <meta charset="UTF-8">
+<title>${docTypeLabel} - ${doc.refNumber || 'Draft'} - ${doc.clientName || 'Client'}</title>
 <style>
   @page { size: A4; margin: 0; }
   body { margin: 0; padding: 0; background: #fff; }
