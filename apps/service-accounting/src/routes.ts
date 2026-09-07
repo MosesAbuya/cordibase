@@ -85,23 +85,33 @@ fastify.get('/api/accounting/documents/:id', async (request: any, reply: any) =>
   const orgId = request.headers['x-org-id'] || request.activeOrganizationId;
   const doc = await db.select().from(accountingSchema.document).where(and(eq(accountingSchema.document.id, id), eq(accountingSchema.document.organizationId, orgId as string))).limit(1);
   if (!doc.length) return reply.code(404).send({ error: 'Not Found' });
-  return doc[0];
+
+  const lineItems = await db.select().from(accountingSchema.documentLineItem).where(eq(accountingSchema.documentLineItem.documentId, id));
+  const template = await db.select().from(accountingSchema.documentTemplate).where(eq(accountingSchema.documentTemplate.organizationId, orgId as string)).limit(1);
+
+  return { document: doc[0], lineItems, template: template[0] || {} };
 });
 
 // POST /api/accounting/documents
 fastify.post('/api/accounting/documents', async (request: any, reply: any) => {
   const orgId = request.headers['x-org-id'] || request.activeOrganizationId;
   const body = request.body as any;
+  
+  // Use a reference format or fallback
+  const refNum = body.refNumber || 'DOC-001';
+
   const newDoc = await db.insert(accountingSchema.document).values({
     id: crypto.randomUUID(),
     organizationId: orgId as string,
     type: body.type || 'invoice',
-    refNumber: body.refNumber || 'DOC-001',
+    refNumber: refNum,
     clientName: body.clientName || 'Unknown',
     total: body.total || '0',
     subtotal: body.subtotal || '0',
     vatAmount: body.vatAmount || '0',
     vatRate: body.vatRate || '16.00',
+    amountPaid: body.amountPaid || '0',
+    balanceDue: body.balanceDue || '0',
     currency: body.currency || 'KES',
     issueDate: body.issueDate ? new Date(body.issueDate) : new Date(),
     dueDate: body.dueDate ? new Date(body.dueDate) : undefined,
@@ -112,6 +122,21 @@ fastify.post('/api/accounting/documents', async (request: any, reply: any) => {
     status: 'draft',
     sequenceId: 1,
   }).returning();
+
+  const docId = newDoc[0].id;
+  const items = body.items || [];
+  for (let i = 0; i < items.length; i++) {
+    await db.insert(accountingSchema.documentLineItem).values({
+      id: crypto.randomUUID(),
+      documentId: docId,
+      sortOrder: i,
+      particulars: items[i].particulars || 'Item',
+      price: items[i].price || '0',
+      qty: items[i].qty || '1',
+      total: items[i].total || '0'
+    });
+  }
+
   return newDoc[0];
 });
 

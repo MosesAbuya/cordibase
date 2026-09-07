@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus, Trash2, Save, FileDown, Copy } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Save, FileDown } from "lucide-react";
 import Link from "next/link";
 import { useModal } from "@/components/ModalProvider";
 
@@ -12,10 +12,8 @@ export default function DocumentBuilder() {
   const [loading, setLoading] = useState(false);
   const [type, setType] = useState("invoice");
   const [settings, setSettings] = useState<any>({ currency: "KES", vatRate: 16, vatEnabled: true });
-  const [allDocs, setAllDocs] = useState<any[]>([]);
 
   const [form, setForm] = useState({
-    refNumber: "",
     clientName: "",
     clientCo: "",
     clientSpec: "",
@@ -23,7 +21,6 @@ export default function DocumentBuilder() {
     issueDate: new Date().toISOString().split("T")[0],
     dueDate: "",
     notes: "",
-    amountPaid: 0,
   });
 
   const [items, setItems] = useState([{ id: Date.now(), particulars: "", price: 0, qty: 1 }]);
@@ -31,17 +28,7 @@ export default function DocumentBuilder() {
 
   useEffect(() => {
     fetchSettings();
-    fetchAllDocs();
   }, []);
-
-  // Set default ref number when type changes (if empty or default format)
-  useEffect(() => {
-    if (!form.refNumber || form.refNumber.startsWith("DOC-") || form.refNumber.startsWith("INV-") || form.refNumber.startsWith("RCT-") || form.refNumber.startsWith("QUO-")) {
-      const prefix = type === "invoice" ? "INV" : type === "receipt" ? "RCT" : "QUO";
-      const randomPart = Math.floor(1000 + Math.random() * 9000);
-      setForm(f => ({ ...f, refNumber: `${prefix}-${randomPart}` }));
-    }
-  }, [type]);
 
   const fetchSettings = async () => {
     try {
@@ -54,57 +41,6 @@ export default function DocumentBuilder() {
     } catch (e) {}
   };
 
-  const fetchAllDocs = async () => {
-    try {
-      const res = await fetch("/api/accounting/documents");
-      if (res.ok) {
-        const data = await res.json();
-        setAllDocs(data.documents || []);
-      }
-    } catch (e) {}
-  };
-
-  const handleImportDoc = async (id: string) => {
-    if (!id) return;
-    try {
-      setLoading(true);
-      const res = await fetch(`/api/accounting/documents/${id}`);
-      if (res.ok) {
-        const data = await res.json();
-        const doc = data.document;
-        const docItems = data.lineItems || [];
-        
-        const prefix = type === "invoice" ? "INV" : type === "receipt" ? "RCT" : "QUO";
-        const oldRef = doc.refNumber || "";
-        const cleanOldRef = oldRef.replace("INV-", "").replace("QUO-", "").replace("RCT-", "");
-        
-        setForm({
-          ...form,
-          refNumber: `${prefix}-${cleanOldRef}`,
-          clientName: doc.clientName || "",
-          clientCo: doc.clientCo || "",
-          clientSpec: doc.clientSpec || "",
-          clientAddress: doc.clientAddress || "",
-          notes: doc.notes || "",
-          amountPaid: type === "receipt" ? Number(doc.total) : 0, // auto fill paid amount for receipt
-        });
-
-        if (docItems.length > 0) {
-          setItems(docItems.map((i: any) => ({
-            id: i.id,
-            particulars: i.particulars,
-            price: Number(i.price),
-            qty: Number(i.qty),
-          })));
-        }
-      }
-    } catch (e) {
-      modal.alert("Error", "Failed to import document");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const addItem = () => setItems([...items, { id: Date.now(), particulars: "", price: 0, qty: 1 }]);
   
   const removeItem = (id: number) => {
@@ -113,14 +49,13 @@ export default function DocumentBuilder() {
     }
   };
 
-  const updateItem = (id: number, field: string, value: string | number) => {
+  const updateItem = (id: number, field: string, value: any) => {
     setItems(items.map(item => item.id === id ? { ...item, [field]: value } : item));
   };
 
   const subtotal = items.reduce((sum, item) => sum + (item.price * item.qty), 0);
-  const vatAmount = applyVat ? subtotal * (settings.vatRate / 100) : 0;
+  const vatAmount = applyVat ? (subtotal * (settings.vatRate / 100)) : 0;
   const total = subtotal + vatAmount;
-  const balanceDue = total - form.amountPaid;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -139,9 +74,8 @@ export default function DocumentBuilder() {
         subtotal,
         vatAmount,
         total,
-        balanceDue,
         status: "draft",
-        items: items.map(item => ({
+        lineItems: items.map(item => ({
           particulars: item.particulars,
           price: item.price,
           qty: item.qty,
@@ -152,79 +86,49 @@ export default function DocumentBuilder() {
       const res = await fetch("/api/accounting/documents", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(payload)
       });
-
-      if (res.ok) {
-        const newDoc = await res.json();
-        router.push(`/dashboard/accounting/documents/${newDoc.id}`);
-      } else {
-        modal.alert("Error", "Failed to save document");
-        setLoading(false);
-      }
-    } catch (error) {
-      console.error(error);
-      modal.alert("Error", "An unexpected error occurred");
+      
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to save document");
+      
+      router.push(`/dashboard/accounting/documents/${data.id}`);
+    } catch (error: any) {
+      modal.alert("Error", error.message);
       setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
-      <div className="flex items-center gap-4">
-        <Link href="/dashboard/accounting" className="p-2 -ml-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-ink/60 hover:text-ink dark:text-slate-400 dark:hover:text-white">
-          <ArrowLeft size={20} />
+    <div className="flex-1 overflow-y-auto bg-[#F9FAFB] dark:bg-ink">
+      <div className="max-w-4xl mx-auto p-6 lg:p-8 space-y-6">
+        <Link href="/dashboard/accounting" className="text-ink/60 hover:text-ink dark:hover:text-white flex items-center text-[14px] font-medium transition-colors w-fit">
+          <ArrowLeft size={16} className="mr-2" /> Back to Documents
         </Link>
-        <div>
-          <h1 className="text-[24px] font-bold tracking-tight text-ink dark:text-white">New Document</h1>
-          <p className="text-[14px] text-ink/60 dark:text-slate-400">Create an invoice, receipt, or quotation</p>
-        </div>
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        
-        {/* Sidebar Controls */}
-        <div className="lg:col-span-1 space-y-4">
-          <div className="bg-white dark:bg-ink border border-ink/10 dark:border-white/10 rounded-[12px] p-4 shadow-sm">
-            <label className="block text-[13px] font-semibold text-ink dark:text-white mb-2">Document Type</label>
-            <div className="space-y-2">
-              {['invoice', 'quotation', 'receipt'].map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => setType(t)}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-[8px] text-[14px] font-medium transition-all ${
-                    type === t 
-                      ? "bg-thread/10 text-thread border border-thread/20" 
-                      : "bg-transparent text-[#344054] dark:text-slate-300 border border-transparent hover:bg-black/5 dark:hover:bg-white/5"
-                  }`}
-                >
-                  <span className="capitalize">{t}</span>
-                  {type === t && <div className="w-2 h-2 rounded-full bg-thread" />}
-                </button>
-              ))}
-            </div>
+        <div className="flex justify-between items-end">
+          <div>
+            <h1 className="text-[24px] font-bold text-ink dark:text-white">New Document</h1>
+            <p className="text-[14px] text-ink/60 mt-1">Fill in the details to generate a branded PDF.</p>
           </div>
-
-          <div className="bg-white dark:bg-ink border border-ink/10 dark:border-white/10 rounded-[12px] p-4 shadow-sm">
-            <label className="block text-[13px] font-semibold text-ink dark:text-white mb-2">Import from Existing</label>
-            <p className="text-[12px] text-ink/60 mb-3 leading-tight">Copy details and items from another document.</p>
-            <select
-              onChange={(e) => handleImportDoc(e.target.value)}
-              className="w-full px-3 py-2 border border-ink/10 dark:border-slate-700 rounded-[8px] bg-transparent text-[13px] focus:outline-none focus:ring-2 focus:ring-[#A83C2E]/20 focus:border-thread"
-            >
-              <option value="">-- Select Document --</option>
-              {allDocs.map((d: any) => (
-                <option key={d.id} value={d.id}>
-                  {d.refNumber} - {d.clientName}
-                </option>
-              ))}
-            </select>
+          <div className="flex bg-[#EAECF0] dark:bg-slate-800 p-1 rounded-[8px]">
+            {["invoice", "quotation", "receipt"].map(t => (
+              <button
+                key={t}
+                onClick={() => setType(t)}
+                className={`px-4 py-2 rounded-[6px] text-[14px] font-medium capitalize transition-all ${
+                  type === t 
+                    ? "bg-white dark:bg-slate-700 text-ink dark:text-white shadow-sm" 
+                    : "text-ink/60 hover:text-ink dark:hover:text-white"
+                }`}
+              >
+                {t}
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* Main Form */}
-        <form onSubmit={handleSubmit} className="lg:col-span-3 bg-white dark:bg-ink border border-ink/10 dark:border-white/10 rounded-[12px] shadow-sm p-6 space-y-8">
+        <form onSubmit={handleSubmit} className="bg-white dark:bg-ink border border-ink/10 dark:border-white/10 rounded-[12px] shadow-sm p-6 space-y-8">
           
           {/* Client Details */}
           <div>
@@ -245,14 +149,10 @@ export default function DocumentBuilder() {
             </div>
           </div>
 
-          {/* Dates & Reference */}
+          {/* Dates */}
           <div>
-            <h3 className="text-[16px] font-semibold text-ink dark:text-white mb-4 border-b border-ink/10 dark:border-white/10 pb-2">Document Details</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="space-y-1.5">
-                <label className="text-[13px] font-medium text-[#344054] dark:text-slate-300">Reference Number *</label>
-                <input required type="text" value={form.refNumber} onChange={e => setForm({...form, refNumber: e.target.value})} className="w-full px-3 py-2 border border-ink/10 dark:border-slate-700 rounded-[8px] bg-transparent text-[14px] font-semibold focus:outline-none focus:ring-2 focus:ring-[#A83C2E]/20 focus:border-thread" />
-              </div>
+            <h3 className="text-[16px] font-semibold text-ink dark:text-white mb-4 border-b border-ink/10 dark:border-white/10 pb-2">Document Dates</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-1.5">
                 <label className="text-[13px] font-medium text-[#344054] dark:text-slate-300">Issue Date *</label>
                 <input required type="date" value={form.issueDate} onChange={e => setForm({...form, issueDate: e.target.value})} className="w-full px-3 py-2 border border-ink/10 dark:border-slate-700 rounded-[8px] bg-transparent text-[14px] focus:outline-none focus:ring-2 focus:ring-[#A83C2E]/20 focus:border-thread" />
@@ -272,6 +172,7 @@ export default function DocumentBuilder() {
             </div>
             
             <div className="space-y-3">
+              {/* Header row */}
               <div className="hidden md:grid grid-cols-12 gap-3 text-[13px] font-medium text-ink/60 px-2">
                 <div className="col-span-6">Particulars</div>
                 <div className="col-span-2">Price</div>
@@ -311,7 +212,7 @@ export default function DocumentBuilder() {
             </button>
           </div>
 
-          {/* Totals & Payments */}
+          {/* Totals Box */}
           <div className="flex justify-end pt-4 border-t border-ink/10 dark:border-white/10">
             <div className="w-full md:w-64 space-y-3">
               <div className="flex justify-between text-[14px]">
@@ -331,20 +232,6 @@ export default function DocumentBuilder() {
                 <span>Total ({settings.currency})</span>
                 <span className="tabular-nums">{total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
               </div>
-
-              {type === "receipt" && (
-                <>
-                  <div className="flex justify-between items-center text-[14px] mt-4">
-                    <span className="text-ink/60 font-semibold">Amount Paid</span>
-                    <input type="number" step="0.01" min="0" value={form.amountPaid} onChange={e => setForm({...form, amountPaid: Number(e.target.value)})} className="w-32 px-2 py-1 text-right border border-ink/10 dark:border-slate-700 rounded-[6px] bg-white dark:bg-[#1E293B] text-[14px] font-medium tabular-nums focus:outline-none focus:ring-2 focus:ring-[#A83C2E]/20 focus:border-thread" />
-                  </div>
-                  <div className="flex justify-between items-center text-[15px] font-bold text-ink dark:text-white pt-2 border-t border-ink/10 dark:border-slate-700">
-                    <span className="text-ink/80">Balance Due</span>
-                    <span className={`tabular-nums ${balanceDue > 0 ? "text-red-500" : "text-emerald-600"}`}>{balanceDue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-                  </div>
-                </>
-              )}
-
             </div>
           </div>
 
@@ -354,7 +241,7 @@ export default function DocumentBuilder() {
             </Link>
             <button disabled={loading} type="submit" className="px-5 py-2.5 rounded-[8px] text-[14px] font-medium text-white bg-thread hover:bg-[#8B3125] transition-colors flex items-center shadow-sm disabled:opacity-50">
               <Save size={16} className="mr-2" />
-              {loading ? "Saving..." : "Save & View"}
+              {loading ? "Saving..." : "Save & Preview"}
             </button>
           </div>
 
@@ -363,3 +250,4 @@ export default function DocumentBuilder() {
     </div>
   );
 }
+

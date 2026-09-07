@@ -1,4 +1,4 @@
-﻿import { pgTable, text, timestamp, decimal, varchar, integer, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, decimal, varchar, integer, boolean } from "drizzle-orm/pg-core";
 import { organization } from "./auth";
 import { company } from "./crm";
 
@@ -89,6 +89,8 @@ export const document = pgTable("document", {
   subtotal: decimal("subtotal", { precision: 12, scale: 2 }).notNull().default("0"),
   vatAmount: decimal("vat_amount", { precision: 12, scale: 2 }).notNull().default("0"),
   total: decimal("total", { precision: 12, scale: 2 }).notNull().default("0"),
+  amountPaid: decimal("amount_paid", { precision: 12, scale: 2 }).notNull().default("0"),
+  balanceDue: decimal("balance_due", { precision: 12, scale: 2 }).notNull().default("0"),
   notes: text("notes"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
