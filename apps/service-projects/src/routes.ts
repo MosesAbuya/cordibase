@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
-import { createDbClient } from '@cordibase/shared-db';
+import { createDbClient, authSchema } from '@cordibase/shared-db';
 import { project, projectMeeting, projectMilestone, projectDocument, projectStandup } from '@cordibase/shared-db/src/schema/projects';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, and } from 'drizzle-orm';
 import dotenv from 'dotenv';
 import path from 'path';
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
@@ -9,9 +9,47 @@ dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 const db = createDbClient(process.env.DATABASE_URL!);
 
 export default async function routes(fastify: FastifyInstance) {
-  
-  fastify.get('/api/projects', async (request, reply) => {
-    const orgId = request.headers['x-organization-id'] as string;
+
+  fastify.addHook('preHandler', async (request, reply) => {
+    const cookieHeader = request.headers.cookie || '';
+    if (!cookieHeader && !request.headers['x-org-id'] && !request.headers['authorization']) {
+      return reply.code(401).send({ error: 'Unauthorized - Missing token' });
+    }
+    try {
+      const coreRes = await fetch((process.env.CORE_SERVICE_INTERNAL_URL || 'http://127.0.0.1:3001') + '/api/auth/get-session', {
+        headers: { 'Cookie': cookieHeader, 'authorization': request.headers['authorization'] || '' }
+      });
+      if (!coreRes.ok) throw new Error('Invalid session');
+      const sessionData = await coreRes.json() as any;
+      const userId = sessionData?.user?.id;
+      if (userId) {
+        (request as any).user = sessionData.user;
+        const requestedOrgId = request.headers['x-org-id'] || sessionData?.session?.activeOrganizationId;
+        let orgId = requestedOrgId;
+        let memberRecord: any = null;
+        if (orgId) {
+          const memberships = await db.select().from(authSchema.member).where(and(eq(authSchema.member.userId, userId), eq(authSchema.member.organizationId, orgId as string))).limit(1);
+          memberRecord = memberships[0];
+        }
+        if (!memberRecord) {
+          const memberships = await db.select().from(authSchema.member).where(eq(authSchema.member.userId, userId)).limit(1);
+          memberRecord = memberships[0];
+          orgId = memberRecord?.organizationId;
+        }
+        if (memberRecord) {
+          (request as any).activeOrganizationId = orgId;
+          (request as any).member = memberRecord;
+        } else {
+          (request as any).activeOrganizationId = null;
+        }
+      } else {
+         return reply.code(401).send({ error: 'Unauthorized - Invalid session' });
+      }
+    } catch (err) {}
+  });
+
+fastify.get('/api/projects', async (request, reply) => {
+    const orgId = (request as any).activeOrganizationId;
     if (!orgId) return reply.status(401).send({ error: 'Organization ID missing' });
 
     const projects = await db.query.project.findMany({
@@ -23,7 +61,7 @@ export default async function routes(fastify: FastifyInstance) {
   });
 
   fastify.get('/api/projects/:id', async (request, reply) => {
-    const orgId = request.headers['x-organization-id'] as string;
+    const orgId = (request as any).activeOrganizationId;
     const { id } = request.params as { id: string };
 
     const proj = await db.query.project.findFirst({
@@ -46,7 +84,7 @@ export default async function routes(fastify: FastifyInstance) {
   });
 
   fastify.post('/api/projects', async (request, reply) => {
-    const orgId = request.headers['x-organization-id'] as string;
+    const orgId = (request as any).activeOrganizationId;
     const body = request.body as any;
 
     const [newProject] = await db.insert(project).values({
@@ -62,7 +100,7 @@ export default async function routes(fastify: FastifyInstance) {
   });
 
   fastify.post('/api/projects/:id/milestones', async (request, reply) => {
-    const orgId = request.headers['x-organization-id'] as string;
+    const orgId = (request as any).activeOrganizationId;
     const { id } = request.params as { id: string };
     const body = request.body as any;
 
@@ -79,7 +117,7 @@ export default async function routes(fastify: FastifyInstance) {
   });
 
   fastify.post('/api/projects/:id/meetings', async (request, reply) => {
-    const orgId = request.headers['x-organization-id'] as string;
+    const orgId = (request as any).activeOrganizationId;
     const { id } = request.params as { id: string };
     const body = request.body as any;
 
@@ -96,7 +134,7 @@ export default async function routes(fastify: FastifyInstance) {
   });
   // AI Analyze Minutes
   fastify.post('/api/projects/:id/meetings/:meetingId/analyze', async (request, reply) => {
-    const orgId = request.headers['x-organization-id'] as string;
+    const orgId = (request as any).activeOrganizationId;
     const { id, meetingId } = request.params as { id: string, meetingId: string };
     
     // 1. Fetch the meeting
