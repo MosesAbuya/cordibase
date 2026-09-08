@@ -8,12 +8,12 @@ import * as hrmSchema from './schema/hrm';
 import * as reportsSchema from './schema/reports';
 import * as settingsSchema from './schema/settings';
 import * as emailingSchema from './schema/emailing';
-import * ...platformSchema, projectsSchema, ...projectsSchema from './schema/platform';
+import * as platformSchema from './schema/platform';
 import * as projectsSchema from './schema/projects';
 
 export const createDbClient = (connectionString: string) => {
   const sql = neon(connectionString);
-  return drizzle(sql, { schema: { ...authSchema, ...crmSchema, ...accountingSchema, ...hrmSchema, ...reportsSchema, ...settingsSchema, ...emailingSchema, ...platformSchema, projectsSchema, ...projectsSchema } });
+  return drizzle(sql, { schema: { ...authSchema, ...crmSchema, ...accountingSchema, ...hrmSchema, ...reportsSchema, ...settingsSchema, ...emailingSchema, ...platformSchema, ...projectsSchema } });
 };
 
 export const schema = {
@@ -24,9 +24,10 @@ export const schema = {
   ...reportsSchema,
   ...settingsSchema,
   ...emailingSchema,
-  ...platformSchema, projectsSchema, ...projectsSchema,
+  ...platformSchema,
+  ...projectsSchema,
 };
 
-export { authSchema, crmSchema, accountingSchema, hrmSchema, reportsSchema, settingsSchema, emailingSchem...platformSchema, projectsSchema, ...projectsSchema };
+export { authSchema, crmSchema, accountingSchema, hrmSchema, reportsSchema, settingsSchema, emailingSchema, platformSchema, projectsSchema };
 
 export * from 'drizzle-orm';
