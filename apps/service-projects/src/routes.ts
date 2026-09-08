@@ -1,11 +1,12 @@
 import { FastifyInstance } from 'fastify';
-import { db } from '@cordibase/shared-db';
+import { createDbClient } from '@cordibase/shared-db';
+const db = createDbClient(process.env.DATABASE_URL!);
 import { project, projectMeeting, projectMilestone, projectDocument, projectStandup } from '@cordibase/shared-db/src/schema/projects';
 import { eq, desc } from 'drizzle-orm';
 
 export default async function routes(fastify: FastifyInstance) {
   
-  fastify.get('/projects', async (request, reply) => {
+  fastify.get('/api/projects', async (request, reply) => {
     const orgId = request.headers['x-organization-id'] as string;
     if (!orgId) return reply.status(401).send({ error: 'Organization ID missing' });
 
@@ -17,7 +18,7 @@ export default async function routes(fastify: FastifyInstance) {
     return reply.send({ projects });
   });
 
-  fastify.get('/projects/:id', async (request, reply) => {
+  fastify.get('/api/projects/:id', async (request, reply) => {
     const orgId = request.headers['x-organization-id'] as string;
     const { id } = request.params as { id: string };
 
@@ -40,7 +41,7 @@ export default async function routes(fastify: FastifyInstance) {
     return reply.send({ project: proj, milestones, meetings });
   });
 
-  fastify.post('/projects', async (request, reply) => {
+  fastify.post('/api/projects', async (request, reply) => {
     const orgId = request.headers['x-organization-id'] as string;
     const body = request.body as any;
 
@@ -56,7 +57,7 @@ export default async function routes(fastify: FastifyInstance) {
     return reply.status(201).send({ project: newProject });
   });
 
-  fastify.post('/projects/:id/milestones', async (request, reply) => {
+  fastify.post('/api/projects/:id/milestones', async (request, reply) => {
     const orgId = request.headers['x-organization-id'] as string;
     const { id } = request.params as { id: string };
     const body = request.body as any;
@@ -73,7 +74,7 @@ export default async function routes(fastify: FastifyInstance) {
     return reply.status(201).send({ milestone: newMilestone });
   });
 
-  fastify.post('/projects/:id/meetings', async (request, reply) => {
+  fastify.post('/api/projects/:id/meetings', async (request, reply) => {
     const orgId = request.headers['x-organization-id'] as string;
     const { id } = request.params as { id: string };
     const body = request.body as any;
@@ -90,7 +91,7 @@ export default async function routes(fastify: FastifyInstance) {
     return reply.status(201).send({ meeting: newMeeting });
   });
   // AI Analyze Minutes
-  fastify.post('/projects/:id/meetings/:meetingId/analyze', async (request, reply) => {
+  fastify.post('/api/projects/:id/meetings/:meetingId/analyze', async (request, reply) => {
     const orgId = request.headers['x-organization-id'] as string;
     const { id, meetingId } = request.params as { id: string, meetingId: string };
     
@@ -132,7 +133,7 @@ ${meeting.minutesText}`;
       const text = response.text;
       const milestonesToCreate = JSON.parse(text);
       
-      const createdMilestones = [];
+      const createdMilestones: any[] = [];
       for (const m of milestonesToCreate) {
         const [inserted] = await db.insert(projectMilestone).values({
           organizationId: orgId,
@@ -161,9 +162,9 @@ ${meeting.minutesText}`;
   });
 
   // Update milestone
-  fastify.put('/projects/:id/milestones/:milestoneId', async (request, reply) => {
-    const { milestoneId } = request.params;
-    const body = request.body;
+  fastify.put('/api/projects/:id/milestones/:milestoneId', async (request, reply) => {
+    const { milestoneId } = request.params as any;
+    const body = request.body as any;
     
     const [updated] = await db.update(projectMilestone)
       .set({ status: body.status })

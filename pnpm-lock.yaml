@@ -165,6 +165,9 @@ importers:
       '@cordibase/service-hrm':
         specifier: workspace:*
         version: link:../service-hrm
+      '@cordibase/service-projects':
+        specifier: workspace:*
+        version: link:../service-projects
       dotenv:
         specifier: ^16.4.5
         version: 16.6.1

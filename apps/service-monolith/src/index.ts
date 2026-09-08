@@ -6,6 +6,7 @@ import coreRoutes from '@cordibase/service-core/dist/routes';
 import crmRoutes from '@cordibase/service-crm/dist/routes';
 import accountingRoutes from '@cordibase/service-accounting/dist/routes';
 import hrmRoutes from '@cordibase/service-hrm/dist/routes';
+import projectsRoutes from '@cordibase/service-projects/dist/routes';
 
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
@@ -19,6 +20,8 @@ fastify.register(crmRoutes);
 fastify.register(accountingRoutes);
 // @ts-ignore
 fastify.register(hrmRoutes);
+// @ts-ignore
+fastify.register(projectsRoutes);
 
 const start = async () => {
   const port = parseInt(process.env.PORT || '3001');

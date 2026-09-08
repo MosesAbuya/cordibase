@@ -16,7 +16,7 @@ export default function ProjectsPage() {
   const fetchProjects = async () => {
     try {
       setLoading(true);
-      const res = await fetch("/api/projects/projects");
+      const res = await fetch("/api/projects");
       if (res.ok) {
         const data = await res.json();
         setProjects(data.projects || []);
@@ -32,7 +32,7 @@ export default function ProjectsPage() {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     try {
-      const res = await fetch('/api/projects/projects', {
+      const res = await fetch('/api/projects', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
