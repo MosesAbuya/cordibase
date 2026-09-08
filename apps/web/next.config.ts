@@ -8,6 +8,7 @@ const nextConfig: NextConfig = {
     const crmUrl = isVercel ? "https://cordibase-1.onrender.com" : (process.env.CRM_SERVICE_URL || "http://127.0.0.1:3002");
     const accountingUrl = isVercel ? "https://cordibase-1.onrender.com" : (process.env.ACCOUNTING_SERVICE_URL || "http://127.0.0.1:3003");
     const hrmUrl = isVercel ? "https://cordibase-1.onrender.com" : (process.env.HRM_SERVICE_URL || "http://127.0.0.1:3004");
+    const projectsUrl = isVercel ? "https://cordibase-1.onrender.com" : (process.env.PROJECTS_SERVICE_URL || "http://127.0.0.1:3005");
 
     return [
       {
@@ -29,6 +30,10 @@ const nextConfig: NextConfig = {
       {
         source: "/api/hrm/:path*",
         destination: `${hrmUrl}/api/hrm/:path*`,
+      },
+      {
+        source: "/api/projects/:path*",
+        destination: `${projectsUrl}/api/projects/:path*`,
       },
     ];
   },
