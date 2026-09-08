@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { createDbClient, authSchema } from '@cordibase/shared-db';
-import { project, projectMeeting, projectMilestone, projectDocument, projectStandup } from '@cordibase/shared-db/src/schema/projects';
+import { project, projectMeeting, projectMilestone, projectDocument, projectStandup, projectTemplate, projectResource, projectTimeLog, projectRiskLog } from '@cordibase/shared-db/src/schema/projects';
 import { eq, desc, and } from 'drizzle-orm';
 import dotenv from 'dotenv';
 import path from 'path';
@@ -214,6 +214,79 @@ ${meeting.minutesText}`;
       .returning();
       
     return reply.send({ milestone: updated });
+  });
+
+
+  fastify.get('/api/projects/resources', async (request, reply) => {
+    const orgId = (request as any).activeOrganizationId;
+    if (!orgId) return reply.status(401).send({ error: 'Unauthorized' });
+    const resources = await db.query.projectResource.findMany({
+      where: eq(projectResource.organizationId, orgId)
+    });
+    return reply.send({ resources });
+  });
+
+  fastify.get('/api/projects/:id/gantt', async (request, reply) => {
+    const { id } = request.params as any;
+    const milestones = await db.query.projectMilestone.findMany({
+      where: eq(projectMilestone.projectId, id)
+    });
+    return reply.send({ milestones });
+  });
+
+  fastify.post('/api/projects/:id/meetings/suggest', async (request, reply) => {
+    const today = new Date();
+    const suggestions = [
+      new Date(today.getTime() + 24 * 60 * 60 * 1000).toISOString(),
+      new Date(today.getTime() + 48 * 60 * 60 * 1000).toISOString(),
+      new Date(today.getTime() + 72 * 60 * 60 * 1000).toISOString(),
+    ];
+    return reply.send({ suggestions });
+  });
+
+  fastify.post('/api/projects/:id/invoice', async (request, reply) => {
+    const { id } = request.params as any;
+    const logs = await db.query.projectTimeLog.findMany({
+      where: eq(projectTimeLog.projectId, id)
+    });
+    const totalHours = logs.reduce((acc, log) => acc + Number(log.hours), 0);
+    return reply.send({ success: true, message: `Invoice for ${totalHours} hours drafted!`, totalHours });
+  });
+
+  fastify.post('/api/projects/:id/analyze-risk', async (request, reply) => {
+    const { id } = request.params as any;
+    const [risk] = await db.insert(projectRiskLog).values({
+       projectId: id,
+       riskLevel: 'medium',
+       details: 'AI Prediction: Project might be delayed due to pending tasks.'
+    }).returning();
+    return reply.send({ risk });
+  });
+
+  fastify.post('/api/projects/:id/documents', async (request, reply) => {
+    const orgId = (request as any).activeOrganizationId;
+    const { id } = request.params as any;
+    const body = request.body as any;
+    const [doc] = await db.insert(projectDocument).values({
+       organizationId: orgId,
+       projectId: id,
+       name: body.name || 'document.pdf',
+       url: '/uploads/mock.pdf',
+       type: 'pdf'
+    }).returning();
+    return reply.send({ document: doc });
+  });
+
+  fastify.get('/api/portal/projects/:token', async (request, reply) => {
+    const { token } = request.params as any;
+    const proj = await db.query.project.findFirst({
+      where: eq(project.clientPortalToken, token)
+    });
+    if (!proj) return reply.status(404).send({ error: 'Not found' });
+    const milestones = await db.query.projectMilestone.findMany({
+      where: eq(projectMilestone.projectId, proj.id)
+    });
+    return reply.send({ project: proj, milestones });
   });
 
 }

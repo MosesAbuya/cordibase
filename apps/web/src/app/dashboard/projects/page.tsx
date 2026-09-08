@@ -67,10 +67,20 @@ export default function ProjectsPage() {
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Active Projects</h1>
           <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Manage and track your ongoing projects and AI insights.</p>
         </div>
-        <button onClick={() => setShowModal(true)} className="flex items-center gap-2 bg-thread hover:bg-red-700 text-white px-4 py-2.5 rounded-lg transition-colors font-medium text-sm shadow-sm">
-          <Plus size={18} />
-          New Project
-        </button>
+        
+          <div className="flex gap-2">
+          <Link href="/dashboard/projects/resources" className="flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 px-4 py-2.5 rounded-lg transition-colors font-medium text-sm shadow-sm">
+            Resources
+          </Link>
+          <Link href="/dashboard/projects/templates" className="flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 px-4 py-2.5 rounded-lg transition-colors font-medium text-sm shadow-sm">
+            Templates
+          </Link>
+          <button onClick={() => setShowModal(true)} className="flex items-center gap-2 bg-thread hover:bg-red-700 text-white px-4 py-2.5 rounded-lg transition-colors font-medium text-sm shadow-sm">
+            <Plus size={18} />
+            New Project
+          </button>
+          </div>
+
       </div>
 
       {loading ? (

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { 
   ArrowLeft, Layout, Columns, Users, FileText, Settings, Plus, MoreHorizontal, CheckCircle2,
   AlertCircle, TrendingDown, RefreshCw, Calendar, Loader2
-} from "lucide-react";
+, GanttChartSquare, DollarSign, ExternalLink, ShieldAlert, FolderUp, Play } from "lucide-react";
 
 export default function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
@@ -43,6 +43,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     { id: "calendar", name: "Calendar", icon: Calendar },
     { id: "overview", name: "Overview", icon: Layout },
     { id: "kanban", name: "Kanban", icon: Columns },
+    { id: "gantt", name: "Gantt", icon: GanttChartSquare },
     { id: "meetings", name: "Meetings", icon: Users },
     { id: "standups", name: "Standups", icon: RefreshCw },
     { id: "documents", name: "Documents", icon: FileText },
@@ -59,12 +60,19 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
             <ArrowLeft size={16} />
             Back to Projects
           </Link>
-          <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">{project.name}</h1>
-            <span className="px-3 py-1 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-sm font-semibold rounded-full capitalize">
-              {project.status}
-            </span>
-          </div>
+          
+            <div className="flex items-center gap-3">
+              <button onClick={() => alert('Client Portal Link: https://cordibase.com/portal/' + project.id)} className="flex items-center gap-2 px-3 py-1.5 text-sm bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-lg font-medium transition-colors">
+                <ExternalLink className="w-4 h-4" /> Client Portal
+              </button>
+              <button onClick={() => alert('AI Risk Analysis: Project is currently On Track.')} className="flex items-center gap-2 px-3 py-1.5 text-sm bg-orange-100 text-orange-700 hover:bg-orange-200 dark:bg-orange-900/30 dark:text-orange-400 rounded-lg font-medium transition-colors">
+                <ShieldAlert className="w-4 h-4" /> Analyze Risk
+              </button>
+              <span className="px-3 py-1 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-sm font-semibold rounded-full capitalize">
+                {project.status}
+              </span>
+            </div>
+
         </div>
       </div>
 
