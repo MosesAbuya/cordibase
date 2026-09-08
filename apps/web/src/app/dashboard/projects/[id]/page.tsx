@@ -55,7 +55,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     <div className="h-full flex flex-col pt-6 px-6">
       <div className="mb-6 flex justify-between items-start">
         <div>
-          <Link href="/dashboard/projects" className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 mb-2 text-sm font-medium transition-colors">
+          <Link href="/dashboard/projects" className="flex items-center gap-2 text-slate-500 hover:text-thread mb-2 text-sm font-medium transition-colors">
             <ArrowLeft size={16} />
             Back to Projects
           </Link>
@@ -76,7 +76,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
               activeTab === tab.id
-                ? "border-indigo-600 text-indigo-600 dark:text-indigo-400 dark:border-indigo-400"
+                ? "border-thread text-thread dark:text-red-400 dark:border-red-400"
                 : "border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300 hover:border-slate-300 dark:hover:border-slate-700"
             }`}
           >
@@ -120,15 +120,15 @@ function OverviewTab({ project }: { project: any }) {
           </div>
         </div>
       </div>
-      <div className="border border-slate-200 dark:border-slate-700 rounded-lg p-5 bg-indigo-50 dark:bg-indigo-900/10">
+      <div className="border border-slate-200 dark:border-slate-700 rounded-lg p-5 bg-red-50 dark:bg-red-900/10">
         <h3 className="font-bold text-lg mb-2 text-slate-900 dark:text-white flex items-center gap-2">
-           <RefreshCw size={18} className="text-indigo-600" /> Resource & Capacity
+           <RefreshCw size={18} className="text-thread" /> Resource & Capacity
         </h3>
         <p className="text-slate-600 dark:text-slate-300 text-sm mb-4">
           Team capacity looks healthy. Developer utilization is at 65%.
         </p>
         <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2.5">
-          <div className="bg-indigo-600 h-2.5 rounded-full" style={{ width: '65%' }}></div>
+          <div className="bg-thread h-2.5 rounded-full" style={{ width: '65%' }}></div>
         </div>
       </div>
     </div>
@@ -181,7 +181,7 @@ function KanbanTab({ projectId, milestones, onRefresh }: { projectId: string, mi
     <div className="h-full flex flex-col">
       <div className="mb-4 flex justify-between">
         <h3 className="font-bold">Milestones & Tasks</h3>
-        <button onClick={() => setShowModal(true)} className="flex items-center gap-1 bg-indigo-600 text-white px-3 py-1.5 rounded-md text-sm">
+        <button onClick={() => setShowModal(true)} className="flex items-center gap-1 bg-thread text-white px-3 py-1.5 rounded-md text-sm">
           <Plus size={16} /> Add Milestone
         </button>
       </div>
@@ -231,7 +231,7 @@ function KanbanTab({ projectId, milestones, onRefresh }: { projectId: string, mi
               </div>
               <div className="flex justify-end gap-3 pt-4">
                 <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 border rounded-md">Cancel</button>
-                <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded-md font-medium">Create</button>
+                <button type="submit" className="px-4 py-2 bg-thread text-white rounded-md font-medium">Create</button>
               </div>
             </form>
           </div>
@@ -289,7 +289,7 @@ function MeetingsTab({ projectId, meetings, onRefresh }: { projectId: string, me
     <div>
       <div className="mb-4 flex justify-between">
         <h3 className="font-bold">Project Meetings</h3>
-        <button onClick={() => setShowModal(true)} className="flex items-center gap-1 bg-indigo-600 text-white px-3 py-1.5 rounded-md text-sm">
+        <button onClick={() => setShowModal(true)} className="flex items-center gap-1 bg-thread text-white px-3 py-1.5 rounded-md text-sm">
           <Plus size={16} /> Schedule Meeting
         </button>
       </div>
@@ -339,7 +339,7 @@ function MeetingsTab({ projectId, meetings, onRefresh }: { projectId: string, me
               </div>
               <div className="flex justify-end gap-3 pt-4">
                 <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 border rounded-md">Cancel</button>
-                <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded-md font-medium">Save Meeting</button>
+                <button type="submit" className="px-4 py-2 bg-thread text-white rounded-md font-medium">Save Meeting</button>
               </div>
             </form>
           </div>
@@ -369,7 +369,7 @@ function DocumentsTab() {
       <p className="text-slate-500 dark:text-slate-400 text-sm max-w-sm mb-4">
         Upload and manage project documentation and assets securely.
       </p>
-      <button className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium">Upload File</button>
+      <button className="px-4 py-2 bg-thread text-white rounded-md text-sm font-medium">Upload File</button>
     </div>
   );
 }
@@ -385,7 +385,7 @@ function CalendarTab({ milestones, meetings }: { milestones: any[], meetings: an
           .sort((a, b) => b.date.getTime() - a.date.getTime())
           .map((item, i) => (
             <div key={i} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-              <div className="flex items-center justify-center w-10 h-10 rounded-full border border-white bg-slate-100 group-[.is-active]:bg-indigo-600 text-white shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2">
+              <div className="flex items-center justify-center w-10 h-10 rounded-full border border-white bg-slate-100 group-[.is-active]:bg-thread text-white shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2">
                 {item.type === 'milestone' ? <CheckCircle2 size={16}/> : <Users size={16}/>}
               </div>
               <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-slate-50 dark:bg-slate-800 p-4 rounded border border-slate-200 dark:border-slate-700 shadow-sm">

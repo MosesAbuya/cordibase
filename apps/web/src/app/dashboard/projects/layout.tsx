@@ -9,7 +9,7 @@ export default function ProjectsLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   const navigation = [
-    { name: "Projects", href: "/dashboard/projects", icon: Folder },
+    { name: "Projects", href: "/dashboard/projects", icon: Folder, exact: true },
     { name: "Team Calendar", href: "/dashboard/projects/calendar", icon: Calendar },
     { name: "Resource Planning", href: "/dashboard/projects/resources", icon: Users },
     { name: "Standups", href: "/dashboard/projects/standups", icon: MessageSquare },
@@ -17,36 +17,38 @@ export default function ProjectsLayout({ children }: { children: ReactNode }) {
   ];
 
   return (
-    <div className="flex flex-col md:flex-row gap-8 min-h-[calc(100vh-120px)]">
+    <div className="flex h-full bg-linen dark:bg-ink">
       {/* Secondary Sidebar */}
-      <aside className="w-full md:w-64 shrink-0">
-        <h2 className="text-xl font-bold mb-6">Projects Hub</h2>
-        <nav className="space-y-1">
+      <div className="w-64 border-r border-ink/10 dark:border-white/10 bg-white dark:bg-ink flex flex-col hidden md:flex">
+        <div className="p-4 border-b border-ink/10 dark:border-white/10">
+          <h2 className="text-[16px] font-semibold text-ink dark:text-white">Projects Hub</h2>
+        </div>
+        <div className="flex-1 overflow-y-auto p-3 space-y-1">
           {navigation.map((item) => {
-            const isActive = pathname === item.href || (item.href !== "/dashboard/projects" && pathname.startsWith(item.href)) || (item.href === "/dashboard/projects" && pathname.startsWith("/dashboard/projects/") && !["calendar", "resources", "standups", "templates"].some(p => pathname.includes(p)));
+            const isActive = item.exact ? pathname === item.href : pathname.startsWith(item.href);
             
             return (
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
+                className={`flex items-center px-3 py-2 text-[14px] font-medium rounded-md transition-colors ${
                   isActive
-                    ? "bg-slate-100 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 font-medium"
-                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-slate-200"
+                    ? "bg-thread/10 text-thread dark:bg-thread/20" 
+                    : "text-[#475467] hover:bg-[#F9FAFB] dark:text-slate-300 dark:hover:bg-slate-800"
                 }`}
               >
-                <item.icon size={18} className={isActive ? "text-indigo-600 dark:text-indigo-400" : "text-slate-400"} />
+                <item.icon size={18} className={`mr-3 ${isActive ? "text-thread" : "text-[#98A2B3]"}`} />
                 {item.name}
               </Link>
             );
           })}
-        </nav>
-      </aside>
+        </div>
+      </div>
 
       {/* Main Content */}
-      <main className="flex-1 min-w-0">
+      <div className="flex-1 flex flex-col h-full overflow-y-auto">
         {children}
-      </main>
+      </div>
     </div>
   );
 }

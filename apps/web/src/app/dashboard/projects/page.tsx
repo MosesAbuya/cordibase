@@ -67,7 +67,7 @@ export default function ProjectsPage() {
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Active Projects</h1>
           <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Manage and track your ongoing projects and AI insights.</p>
         </div>
-        <button onClick={() => setShowModal(true)} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-lg transition-colors font-medium text-sm shadow-sm">
+        <button onClick={() => setShowModal(true)} className="flex items-center gap-2 bg-thread hover:bg-red-700 text-white px-4 py-2.5 rounded-lg transition-colors font-medium text-sm shadow-sm">
           <Plus size={18} />
           New Project
         </button>
@@ -78,13 +78,13 @@ export default function ProjectsPage() {
       ) : projects.length === 0 ? (
         <div className="text-center py-10 border-2 border-dashed rounded-lg border-slate-200">
           <p className="text-slate-500 mb-4">No projects found.</p>
-          <button onClick={() => setShowModal(true)} className="text-indigo-600 font-medium">Create your first project</button>
+          <button onClick={() => setShowModal(true)} className="text-thread font-medium">Create your first project</button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {projects.map((project) => (
             <Link href={`/dashboard/projects/${project.id}`} key={project.id} className="block group">
-              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm hover:shadow-md transition-all group-hover:border-indigo-300 dark:group-hover:border-indigo-700">
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm hover:shadow-md transition-all group-hover:border-red-300 dark:group-hover:border-red-700">
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center gap-2">
                     <span className="px-2.5 py-1 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-xs font-semibold rounded-full uppercase tracking-wider">
@@ -100,7 +100,7 @@ export default function ProjectsPage() {
                   </button>
                 </div>
                 
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1 group-hover:text-thread dark:group-hover:text-red-400 transition-colors">
                   {project.name}
                 </h3>
                 <p className="text-slate-500 dark:text-slate-400 text-sm mb-5 line-clamp-2">
@@ -149,7 +149,7 @@ export default function ProjectsPage() {
               </div>
               <div className="flex justify-end gap-3 pt-4">
                 <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 border rounded-md">Cancel</button>
-                <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded-md font-medium hover:bg-indigo-700">Create Project</button>
+                <button type="submit" className="px-4 py-2 bg-thread text-white rounded-md font-medium hover:bg-red-700">Create Project</button>
               </div>
             </form>
           </div>
