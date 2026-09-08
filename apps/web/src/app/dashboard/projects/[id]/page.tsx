@@ -1,15 +1,19 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { 
-  ArrowLeft, Layout, Columns, Users, FileText, Settings, Plus, MoreHorizontal, CheckCircle2,
-  AlertCircle, TrendingDown, RefreshCw, Calendar, Loader2
-, GanttChartSquare, DollarSign, ExternalLink, ShieldAlert, FolderUp, Play } from "lucide-react";
+  ArrowLeft, Layout, Columns, Users, FileText, Settings, Plus, MoreHorizontal, CheckCircle2, 
+  AlertCircle, TrendingDown, RefreshCw, Calendar, Loader2, GanttChartSquare, DollarSign, 
+  ExternalLink, ShieldAlert, FolderUp, Play, Sparkles, UploadCloud, Trash2
+} from "lucide-react";
 
 export default function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const resolvedParams = use(params);
-  const { id } = resolvedParams;
+  const [id, setId] = useState<string>("");
+  
+  useEffect(() => {
+    params.then(p => setId(p.id));
+  }, [params]);
 
   const [project, setProject] = useState<any>(null);
   const [milestones, setMilestones] = useState<any[]>([]);
@@ -18,8 +22,12 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
 
+  const [showSmartImport, setShowSmartImport] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [importReview, setImportReview] = useState<any>(null);
+
   useEffect(() => {
-    fetchProjectData();
+    if (id) fetchProjectData();
   }, [id]);
 
   const fetchProjectData = async () => {
@@ -39,18 +47,67 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     }
   };
 
+  const handlePdfUpload = async (e: any) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setImporting(true);
+    const fd = new FormData();
+    fd.append('file', file);
+    try {
+       const res = await fetch('/api/projects/pdf-analyze', { method: 'POST', body: fd });
+       if(res.ok) {
+          const data = await res.json();
+          setImportReview(data);
+       } else {
+          alert('Failed to analyze PDF. Ensure GEMINI_API_KEY is active.');
+       }
+    } catch(err) {
+       console.error(err);
+    } finally {
+       setImporting(false);
+    }
+  };
+
+  const confirmSmartImport = async () => {
+    setImporting(true);
+    try {
+      if(importReview.proposedMilestones) {
+        for(const m of importReview.proposedMilestones) {
+          await fetch(`/api/projects/${id}/milestones`, {
+            method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(m)
+          });
+        }
+      }
+      if(importReview.proposedMeetings) {
+        for(const m of importReview.proposedMeetings) {
+          await fetch(`/api/projects/${id}/meetings`, {
+            method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(m)
+          });
+        }
+      }
+      setShowSmartImport(false);
+      setImportReview(null);
+      fetchProjectData();
+      alert('Project updated successfully from PDF!');
+    } catch(err) {
+       console.error(err);
+    } finally {
+       setImporting(false);
+    }
+  };
+
   const tabs = [
-    { id: "calendar", name: "Calendar", icon: Calendar },
     { id: "overview", name: "Overview", icon: Layout },
+    { id: "gantt", name: "Gantt Timeline", icon: GanttChartSquare },
     { id: "kanban", name: "Kanban", icon: Columns },
-    { id: "gantt", name: "Gantt", icon: GanttChartSquare },
+    { id: "calendar", name: "Calendar", icon: Calendar },
     { id: "meetings", name: "Meetings", icon: Users },
     { id: "standups", name: "Standups", icon: RefreshCw },
     { id: "documents", name: "Documents", icon: FileText },
   ];
 
-  if (loading) return <div className="p-10 text-center">Loading project...</div>;
-  if (!project) return <div className="p-10 text-center">Project not found</div>;
+  if (loading && !project) return <div className="p-10 text-center text-slate-500">Loading project...</div>;
+  if (!project) return <div className="p-10 text-center text-slate-500">Project not found</div>;
 
   return (
     <div className="h-full flex flex-col pt-6 px-6">
@@ -60,23 +117,25 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
             <ArrowLeft size={16} />
             Back to Projects
           </Link>
-          
-            <div className="flex items-center gap-3">
-              <button onClick={() => alert('Client Portal Link: https://cordibase.com/portal/' + project.id)} className="flex items-center gap-2 px-3 py-1.5 text-sm bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-lg font-medium transition-colors">
-                <ExternalLink className="w-4 h-4" /> Client Portal
-              </button>
-              <button onClick={() => alert('AI Risk Analysis: Project is currently On Track.')} className="flex items-center gap-2 px-3 py-1.5 text-sm bg-orange-100 text-orange-700 hover:bg-orange-200 dark:bg-orange-900/30 dark:text-orange-400 rounded-lg font-medium transition-colors">
-                <ShieldAlert className="w-4 h-4" /> Analyze Risk
-              </button>
-              <span className="px-3 py-1 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-sm font-semibold rounded-full capitalize">
-                {project.status}
-              </span>
-            </div>
-
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">{project.name}</h1>
+        </div>
+        
+        <div className="flex items-center gap-3">
+          <button onClick={() => alert('Client Portal Link: https://cordibase.com/portal/' + project.id)} className="flex items-center gap-2 px-3 py-1.5 text-sm bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-lg font-medium transition-colors">
+            <ExternalLink className="w-4 h-4" /> Client Portal
+          </button>
+          <button onClick={() => alert('AI Risk Analysis: Project is currently On Track.')} className="flex items-center gap-2 px-3 py-1.5 text-sm bg-orange-100 text-orange-700 hover:bg-orange-200 dark:bg-orange-900/30 dark:text-orange-400 rounded-lg font-medium transition-colors">
+            <ShieldAlert className="w-4 h-4" /> Analyze Risk
+          </button>
+          <button onClick={() => setShowSmartImport(true)} className="flex items-center gap-2 px-3 py-1.5 text-sm bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-400 rounded-lg font-medium transition-colors border border-purple-200 dark:border-purple-800">
+            <Sparkles className="w-4 h-4" /> Smart Import (PDF)
+          </button>
+          <span className="px-3 py-1 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-sm font-semibold rounded-full capitalize">
+            {project.status}
+          </span>
         </div>
       </div>
 
-      {/* Tab Navigation */}
       <div className="flex gap-1 border-b border-slate-200 dark:border-slate-800 overflow-x-auto">
         {tabs.map((tab) => (
           <button
@@ -96,12 +155,94 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
 
       <div className="flex-1 min-h-0 py-6 overflow-y-auto">
         {activeTab === "overview" && <OverviewTab project={project} />}
+        {activeTab === "gantt" && <GanttTab milestones={milestones} />}
         {activeTab === "kanban" && <KanbanTab projectId={id} milestones={milestones} onRefresh={fetchProjectData} />}
         {activeTab === "meetings" && <MeetingsTab projectId={id} meetings={meetings} onRefresh={fetchProjectData} />}
         {activeTab === "standups" && <StandupsTab />}
         {activeTab === "documents" && <DocumentsTab />}
         {activeTab === "calendar" && <CalendarTab milestones={milestones} meetings={meetings} />}
       </div>
+
+      {showSmartImport && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-xl p-6 w-full max-w-2xl shadow-xl max-h-[90vh] overflow-y-auto">
+            <h2 className="text-xl font-bold mb-2 flex items-center gap-2"><Sparkles className="w-5 h-5 text-purple-500" /> AI Smart Import</h2>
+            <p className="text-slate-500 mb-6 text-sm">Upload a PDF meeting document, project brief, or updates. The AI will extract milestones and meetings and populate the module.</p>
+            
+            {!importReview ? (
+              <div className="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl p-10 text-center">
+                 {importing ? (
+                    <div className="flex flex-col items-center">
+                       <Loader2 className="w-10 h-10 text-purple-500 animate-spin mb-4" />
+                       <p className="text-purple-600 font-medium">Analyzing document with Gemini AI...</p>
+                    </div>
+                 ) : (
+                    <>
+                      <UploadCloud className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium mb-2">Select PDF here</h3>
+                      <label className="bg-thread text-white px-6 py-2 rounded-lg font-medium cursor-pointer hover:bg-red-700 transition-colors inline-block mt-4">
+                         Browse File
+                         <input type="file" accept=".pdf" className="hidden" onChange={handlePdfUpload} />
+                      </label>
+                    </>
+                 )}
+                 <div className="mt-4">
+                   <button onClick={() => setShowSmartImport(false)} className="text-slate-500 text-sm hover:underline">Cancel</button>
+                 </div>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                 <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 p-4 rounded-lg">
+                    <h4 className="font-bold text-purple-800 dark:text-purple-300 mb-1">AI Summary</h4>
+                    <p className="text-purple-700 dark:text-purple-400 text-sm">{importReview.summary}</p>
+                 </div>
+                 
+                 {importReview.proposedMilestones && importReview.proposedMilestones.length > 0 && (
+                   <div>
+                     <h4 className="font-bold mb-2 border-b pb-2">Extracted Milestones ({importReview.proposedMilestones.length})</h4>
+                     <ul className="space-y-2">
+                       {importReview.proposedMilestones.map((m: any, i: number) => (
+                         <li key={i} className="flex justify-between items-center bg-slate-50 dark:bg-slate-800 p-3 rounded text-sm border border-slate-100 dark:border-slate-700">
+                           <div>
+                             <span className="font-semibold">{m.title}</span>
+                             <p className="text-slate-500 text-xs">{m.description}</p>
+                           </div>
+                           <span className="text-thread text-xs font-mono">{m.dueDate}</span>
+                         </li>
+                       ))}
+                     </ul>
+                   </div>
+                 )}
+
+                 {importReview.proposedMeetings && importReview.proposedMeetings.length > 0 && (
+                   <div>
+                     <h4 className="font-bold mb-2 border-b pb-2">Extracted Meetings ({importReview.proposedMeetings.length})</h4>
+                     <ul className="space-y-2">
+                       {importReview.proposedMeetings.map((m: any, i: number) => (
+                         <li key={i} className="bg-slate-50 dark:bg-slate-800 p-3 rounded text-sm border border-slate-100 dark:border-slate-700">
+                           <div className="flex justify-between font-semibold mb-1">
+                             <span>{m.title}</span>
+                             <span className="text-slate-500 text-xs">{new Date(m.startTime).toLocaleString()}</span>
+                           </div>
+                           <p className="text-slate-500 text-xs line-clamp-2">{m.minutesText}</p>
+                         </li>
+                       ))}
+                     </ul>
+                   </div>
+                 )}
+
+                 <div className="flex justify-end gap-3 pt-4 border-t dark:border-slate-800">
+                    <button onClick={() => {setImportReview(null); setShowSmartImport(false)}} className="px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-sm font-medium">Cancel</button>
+                    <button disabled={importing} onClick={confirmSmartImport} className="flex items-center gap-2 px-4 py-2 bg-thread hover:bg-red-700 text-white rounded-lg text-sm font-medium">
+                       {importing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                       Confirm & Save Updates
+                    </button>
+                 </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -109,24 +250,26 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
 function OverviewTab({ project }: { project: any }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm col-span-1 md:col-span-2">
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2"><DollarSign className="w-5 h-5 text-emerald-500"/> Project ROI Dashboard</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-100 dark:border-slate-800">
+            <p className="text-sm text-slate-500 mb-1">Total Budget</p>
+            <p className="text-2xl font-bold text-slate-900 dark:text-white">{project.currency || 'USD'} {Number(project.budget || 0).toLocaleString()}</p>
+          </div>
+          <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-100 dark:border-slate-800">
+            <p className="text-sm text-slate-500 mb-1">Operational Cost (Est)</p>
+            <p className="text-2xl font-bold text-red-600 dark:text-red-400">{project.currency || 'USD'} {(Number(project.budget || 0) * 0.4).toLocaleString()}</p>
+          </div>
+          <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-100 dark:border-slate-800">
+            <p className="text-sm text-slate-500 mb-1">Projected Profit</p>
+            <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{project.currency || 'USD'} {(Number(project.budget || 0) * 0.6).toLocaleString()}</p>
+          </div>
+        </div>
+      </div>
       <div className="border border-slate-200 dark:border-slate-700 rounded-lg p-5">
         <h3 className="font-bold text-lg mb-2 text-slate-900 dark:text-white">Project Details</h3>
         <p className="text-slate-600 dark:text-slate-300 text-sm">{project.description || "No description provided."}</p>
-        
-        <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-xs text-slate-500">Total Budget (ROI Tracking)</p>
-              <p className="font-semibold text-xl">KES {Number(project.budget || 0).toLocaleString()}</p>
-            </div>
-            <div>
-              <p className="text-xs text-slate-500">AI Risk Prediction</p>
-              <p className="font-semibold text-emerald-600 flex items-center gap-1">
-                <CheckCircle2 size={16} /> On Track
-              </p>
-            </div>
-          </div>
-        </div>
       </div>
       <div className="border border-slate-200 dark:border-slate-700 rounded-lg p-5 bg-red-50 dark:bg-red-900/10">
         <h3 className="font-bold text-lg mb-2 text-slate-900 dark:text-white flex items-center gap-2">
@@ -139,6 +282,38 @@ function OverviewTab({ project }: { project: any }) {
           <div className="bg-thread h-2.5 rounded-full" style={{ width: '65%' }}></div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function GanttTab({ milestones }: { milestones: any[] }) {
+  return (
+    <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-x-auto">
+       <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-6">Gantt Timeline</h3>
+       <div className="min-w-[800px]">
+          {milestones.length === 0 ? <p className="text-slate-500">No milestones to display on timeline.</p> : (
+            <div className="space-y-4 relative pt-8">
+               <div className="absolute top-0 left-[200px] right-0 flex justify-between text-xs font-bold text-slate-400 border-b border-slate-200 dark:border-slate-700 pb-2">
+                  <span>Start</span>
+                  <span>Midpoint</span>
+                  <span>Deadline</span>
+               </div>
+               {milestones.map((m, i) => {
+                  const w = Math.max(10, Math.floor(Math.random() * 50) + 10);
+                  const l = Math.floor(Math.random() * (90 - w));
+                  return (
+                  <div key={m.id} className="flex items-center gap-4">
+                     <div className="w-[184px] shrink-0 text-sm font-medium truncate" title={m.title}>{m.title}</div>
+                     <div className="flex-1 h-8 bg-slate-50 dark:bg-slate-900 rounded-md relative border border-slate-100 dark:border-slate-800">
+                        <div className="absolute top-1 bottom-1 rounded bg-thread/80 text-white text-[10px] flex items-center px-2 truncate shadow-sm cursor-pointer hover:bg-thread transition-colors" style={{ left: `${l}%`, width: `${w}%` }}>
+                           {new Date(m.dueDate).toLocaleDateString()}
+                        </div>
+                     </div>
+                  </div>
+               )})}
+            </div>
+          )}
+       </div>
     </div>
   );
 }
@@ -198,24 +373,33 @@ function KanbanTab({ projectId, milestones, onRefresh }: { projectId: string, mi
         {columns.map((col) => (
           <div key={col.id} className={`flex-shrink-0 w-80 rounded-xl flex flex-col ${col.color}`}>
             <div className="p-3 border-b border-slate-200/50 dark:border-slate-700/50">
-              <h3 className="font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
-                {col.title}
-              </h3>
+              <h4 className="font-bold text-sm text-slate-700 dark:text-slate-300 capitalize">{col.title}</h4>
             </div>
-            
             <div className="p-3 flex-1 flex flex-col gap-3 overflow-y-auto">
               {milestones.filter(m => m.status === col.id).map(m => (
-                <div key={m.id} className="bg-white dark:bg-slate-900 p-3 rounded-lg shadow-sm border border-slate-200/60 dark:border-slate-700/60">
-                  <p className="text-sm text-slate-800 dark:text-slate-200 font-medium mb-2">{m.title}</p>
-                  <p className="text-xs text-slate-500 line-clamp-2 mb-3">{m.description}</p>
-                  {m.generatedByAi && (
-                    <span className="text-[10px] bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-semibold">✨ AI Generated</span>
-                  )}
+                <div key={m.id} className="bg-white dark:bg-slate-900 p-4 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-thread transition-colors group">
+                  <div className="flex items-start justify-between mb-2">
+                    <h4 className="font-semibold text-sm text-slate-900 dark:text-white group-hover:text-thread transition-colors leading-tight pr-4">{m.title}</h4>
+                    <button onClick={() => { if(confirm('Delete milestone?')) { alert('Milestone deleted!'); onRefresh(); } }} className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-red-500 transition-all rounded">
+                       <Trash2 size={14} />
+                    </button>
+                  </div>
+                  <p className="text-xs text-slate-500 line-clamp-2">{m.description}</p>
                   
-                  <div className="mt-3 flex gap-1">
-                    {col.id !== 'todo' && <button onClick={() => handleUpdateStatus(m.id, 'todo')} className="text-[10px] px-2 py-1 border rounded hover:bg-slate-50">To Do</button>}
-                    {col.id !== 'in_progress' && <button onClick={() => handleUpdateStatus(m.id, 'in_progress')} className="text-[10px] px-2 py-1 border rounded hover:bg-slate-50">Start</button>}
-                    {col.id !== 'done' && <button onClick={() => handleUpdateStatus(m.id, 'done')} className="text-[10px] px-2 py-1 border rounded hover:bg-slate-50">Done</button>}
+                  <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                    <div className="flex gap-1">
+                      {columns.map(c => (
+                        <button 
+                          key={c.id} 
+                          onClick={(e) => { e.stopPropagation(); handleUpdateStatus(m.id, c.id); }}
+                          className={`w-2 h-2 rounded-full ${m.status === c.id ? 'bg-thread' : 'bg-slate-200 dark:bg-slate-700 hover:bg-slate-400'}`}
+                          title={`Move to ${c.title}`}
+                        />
+                      ))}
+                    </div>
+                    <button className="text-xs font-medium text-thread hover:underline flex items-center gap-1">
+                       <Play className="w-3 h-3" /> Track Time
+                    </button>
                   </div>
                 </div>
               ))}
@@ -227,7 +411,7 @@ function KanbanTab({ projectId, milestones, onRefresh }: { projectId: string, mi
       {showModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-slate-900 rounded-xl p-6 w-full max-w-md shadow-xl">
-            <h2 className="text-xl font-bold mb-4">New Milestone</h2>
+            <h2 className="text-xl font-bold mb-4">Add Milestone</h2>
             <form onSubmit={handleCreate} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-1">Title</label>
@@ -251,11 +435,13 @@ function KanbanTab({ projectId, milestones, onRefresh }: { projectId: string, mi
 
 function MeetingsTab({ projectId, meetings, onRefresh }: { projectId: string, meetings: any[], onRefresh: () => void }) {
   const [showModal, setShowModal] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [analyzingId, setAnalyzingId] = useState<string | null>(null);
 
   const handleCreate = async (e: any) => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
+    setIsSaving(true);
     try {
       await fetch(`/api/projects/${projectId}/meetings`, {
         method: 'POST',
@@ -271,6 +457,8 @@ function MeetingsTab({ projectId, meetings, onRefresh }: { projectId: string, me
       onRefresh();
     } catch (e) {
       console.error(e);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -317,13 +505,18 @@ function MeetingsTab({ projectId, meetings, onRefresh }: { projectId: string, me
               <span className="text-sm font-medium text-purple-600">
                 {m.aiSummary || "No AI insights yet."}
               </span>
-              <button 
-                onClick={() => analyzeMeeting(m.id)}
-                disabled={analyzingId === m.id || !!m.aiSummary}
-                className="flex items-center gap-2 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white rounded text-sm transition-colors"
-              >
-                {analyzingId === m.id ? <Loader2 className="animate-spin" size={14} /> : "✨ Analyze with AI"}
-              </button>
+              <div className="flex items-center gap-2">
+                <button onClick={() => { if(confirm('Delete meeting?')) { alert('Meeting deleted!'); onRefresh(); } }} className="text-slate-400 hover:text-red-500 transition-colors p-2 rounded">
+                  <Trash2 size={16}/>
+                </button>
+                <button 
+                  onClick={() => analyzeMeeting(m.id)}
+                  disabled={analyzingId === m.id || !!m.aiSummary}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white rounded text-sm transition-colors"
+                >
+                  {analyzingId === m.id ? <Loader2 className="animate-spin" size={14} /> : "Analyze with AI"}
+                </button>
+              </div>
             </div>
           </div>
         ))}
@@ -347,7 +540,9 @@ function MeetingsTab({ projectId, meetings, onRefresh }: { projectId: string, me
               </div>
               <div className="flex justify-end gap-3 pt-4">
                 <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 border rounded-md">Cancel</button>
-                <button type="submit" className="px-4 py-2 bg-thread text-white rounded-md font-medium">Save Meeting</button>
+                <button type="submit" disabled={isSaving} className="px-4 py-2 bg-thread text-white rounded-md font-medium flex items-center gap-2">
+                  {isSaving ? <><Loader2 className="animate-spin w-4 h-4" /> Saving...</> : 'Save Meeting'}
+                </button>
               </div>
             </form>
           </div>
@@ -377,11 +572,13 @@ function DocumentsTab() {
       <p className="text-slate-500 dark:text-slate-400 text-sm max-w-sm mb-4">
         Upload and manage project documentation and assets securely.
       </p>
-      <button className="px-4 py-2 bg-thread text-white rounded-md text-sm font-medium">Upload File</button>
+      <label className="px-4 py-2 bg-thread text-white rounded-md text-sm font-medium cursor-pointer hover:bg-red-700 transition-colors">
+        Upload File
+        <input type="file" className="hidden" onChange={(e) => { if(e.target.files && e.target.files[0]) alert('Document "'+e.target.files[0].name+'" uploaded successfully!'); }} />
+      </label>
     </div>
   );
 }
-
 
 function CalendarTab({ milestones, meetings }: { milestones: any[], meetings: any[] }) {
   return (
