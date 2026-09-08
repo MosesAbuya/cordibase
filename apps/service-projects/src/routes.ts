@@ -160,4 +160,17 @@ ${meeting.minutesText}`;
     }
   });
 
+  // Update milestone
+  fastify.put('/projects/:id/milestones/:milestoneId', async (request, reply) => {
+    const { milestoneId } = request.params;
+    const body = request.body;
+    
+    const [updated] = await db.update(projectMilestone)
+      .set({ status: body.status })
+      .where(eq(projectMilestone.id, milestoneId))
+      .returning();
+      
+    return reply.send({ milestone: updated });
+  });
+
 }
