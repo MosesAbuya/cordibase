@@ -182,6 +182,40 @@ importers:
         specifier: ^5.5.0
         version: 5.9.3
 
+  apps/service-projects:
+    dependencies:
+      '@cordibase/shared-db':
+        specifier: workspace:*
+        version: link:../../packages/shared-db
+      '@cordibase/shared-events':
+        specifier: workspace:*
+        version: link:../../packages/shared-events
+      '@fastify/cors':
+        specifier: 11.3.0
+        version: 11.3.0
+      '@google/genai':
+        specifier: ^2.19.0
+        version: 2.19.0(supports-color@7.2.0)
+      dotenv:
+        specifier: ^16.4.5
+        version: 16.6.1
+      drizzle-orm:
+        specifier: ^0.30.10
+        version: 0.30.10(@neondatabase/serverless@0.9.5)(@types/pg@8.11.6)(@types/react@19.2.18)(kysely@0.29.5)(react@19.2.8)
+      fastify:
+        specifier: ^5.12.1
+        version: 5.12.1
+    devDependencies:
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.43
+      tsx:
+        specifier: ^4.7.2
+        version: 4.23.12
+      typescript:
+        specifier: ^5.5.0
+        version: 5.9.3
+
   apps/web:
     dependencies:
       '@cordibase/shared-db':

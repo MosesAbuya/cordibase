@@ -158,6 +158,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       ...(hasModuleAccess('crm') ? [{ name: "CRM", path: "/dashboard/crm", icon: <Users size={18} /> }] : []),
       ...(hasModuleAccess('accounting') ? [{ name: "Accounting", path: "/dashboard/accounting", icon: <BookOpen size={18} /> }] : []),
       ...(hasModuleAccess('hrm') ? [{ name: "HRM", path: "/dashboard/hrm", icon: <Briefcase size={18} /> }] : []),
+      { name: "Projects", path: "/dashboard/projects", icon: <Briefcase size={18} /> },
       { name: "Emailing", path: "/dashboard/emailing", icon: <Mail size={18} /> },
       ...(isAdmin ? [{ name: "Billing", path: "/dashboard/settings/billing", icon: <CreditCard size={18} /> }] : []),
       ...(isAdmin ? [{ name: "Settings", path: "/dashboard/settings/team", icon: <Settings size={18} /> }] : []),
