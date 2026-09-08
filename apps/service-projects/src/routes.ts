@@ -1,8 +1,12 @@
 import { FastifyInstance } from 'fastify';
 import { createDbClient } from '@cordibase/shared-db';
-const db = createDbClient(process.env.DATABASE_URL!);
 import { project, projectMeeting, projectMilestone, projectDocument, projectStandup } from '@cordibase/shared-db/src/schema/projects';
 import { eq, desc } from 'drizzle-orm';
+import dotenv from 'dotenv';
+import path from 'path';
+dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
+
+const db = createDbClient(process.env.DATABASE_URL!);
 
 export default async function routes(fastify: FastifyInstance) {
   
