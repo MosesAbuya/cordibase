@@ -131,6 +131,7 @@ export const transaction = pgTable("transaction", {
   vendorOrSource: text("vendor_or_source"),
   receiptUrl: text("receipt_url"),
   aiExtracted: boolean("ai_extracted").notNull().default(false),
+  status: varchar("status", { length: 20 }).notNull().default("paid"),
   linkedDocumentId: text("linked_document_id").references(() => document.id, { onDelete: "set null" }),
   notes: text("notes"),
   createdAt: timestamp("created_at").notNull().defaultNow(),

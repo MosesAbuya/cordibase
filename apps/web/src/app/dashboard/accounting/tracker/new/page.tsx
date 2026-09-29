@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -22,6 +22,7 @@ export default function AddTransaction() {
     description: "",
     vendorOrSource: "",
     notes: "",
+    status: "paid",
     aiExtracted: false
   });
 
@@ -83,7 +84,7 @@ export default function AddTransaction() {
         
         // Find best category match
         let matchedCategory = null;
-        if (data.extracted.suggested_category) {
+        if (data.extracted?.suggested_category) {
            matchedCategory = categories.find((c: any) => 
              c.name.toLowerCase().includes(data.extracted.suggested_category.toLowerCase()) || 
              data.extracted.suggested_category.toLowerCase().includes(c.name.toLowerCase())
@@ -93,11 +94,11 @@ export default function AddTransaction() {
         setForm(prev => ({
           ...prev,
           type: "expense", // receipts are usually expenses
-          date: data.extracted.date || prev.date,
-          amount: data.extracted.total_amount || "",
-          currency: data.extracted.currency || prev.currency,
-          description: data.extracted.description || "",
-          vendorOrSource: data.extracted.vendor_name || "",
+          date: data.extracted?.date || prev.date,
+          amount: data.extracted?.total_amount || "",
+          currency: data.extracted?.currency || prev.currency,
+          description: data.extracted?.description || "",
+          vendorOrSource: data.extracted?.vendor_name || "",
           categoryId: matchedCategory ? matchedCategory.id : "",
           aiExtracted: true
         }));
@@ -253,11 +254,19 @@ export default function AddTransaction() {
                   </select>
                 </div>
 
-                <div className="space-y-1.5 md:col-span-2">
+                <div className="space-y-1.5 md:col-span-1">
                   <label className="text-[13px] font-medium text-[#344054] dark:text-slate-300">
                     {form.type === "expense" ? "Vendor / Merchant" : "Source / Client"}
                   </label>
                   <input type="text" value={form.vendorOrSource} onChange={e => setForm({...form, vendorOrSource: e.target.value})} className="w-full px-3 py-2 border border-ink/10 dark:border-slate-700 rounded-[8px] bg-transparent text-[14px] focus:outline-none focus:ring-2 focus:ring-[#A83C2E]/20 focus:border-thread" placeholder={form.type === "expense" ? "e.g. Amazon, Uber" : "e.g. Acme Corp"} />
+                </div>
+                
+                <div className="space-y-1.5 md:col-span-1">
+                  <label className="text-[13px] font-medium text-[#344054] dark:text-slate-300">Status</label>
+                  <select value={form.status} onChange={e => setForm({...form, status: e.target.value})} className="w-full px-3 py-2 border border-ink/10 dark:border-slate-700 rounded-[8px] bg-transparent text-[14px] focus:outline-none focus:ring-2 focus:ring-[#A83C2E]/20 focus:border-thread">
+                    <option value="paid">Paid</option>
+                    <option value="unpaid">Unpaid</option>
+                  </select>
                 </div>
               </div>
 

@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useModal } from "@/components/ModalProvider";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { 
   ArrowLeft, Layout, Columns, Users, FileText, Settings, Plus, MoreHorizontal, CheckCircle2, 
   AlertCircle, TrendingDown, RefreshCw, Calendar, Loader2, GanttChartSquare, DollarSign, 
@@ -10,6 +12,8 @@ import {
 
 export default function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const [id, setId] = useState<string>("");
+  const modal = useModal();
+  const router = useRouter();
   
   useEffect(() => {
     params.then(p => setId(p.id));
@@ -59,7 +63,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
           const data = await res.json();
           setImportReview(data);
        } else {
-          alert('Failed to analyze PDF. Ensure GEMINI_API_KEY is active.');
+          modal.alert("Failed to analyze PDF. Ensure GEMINI_API_KEY is active.", "Scan Error");
        }
     } catch(err) {
        console.error(err);
@@ -88,7 +92,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
       setShowSmartImport(false);
       setImportReview(null);
       fetchProjectData();
-      alert('Project updated successfully from PDF!');
+      modal.alert("Project updated successfully from PDF!", "Success");
     } catch(err) {
        console.error(err);
     } finally {
@@ -121,16 +125,31 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
         </div>
         
         <div className="flex items-center gap-3">
-          <button onClick={() => alert('Client Portal Link: https://cordibase.com/portal/' + project.id)} className="flex items-center gap-2 px-3 py-1.5 text-sm bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-lg font-medium transition-colors">
+          <button onClick={() => modal.alert("Client Portal Link: https://cordibase.com/portal/" + project.id, "Client Portal")} className="flex items-center gap-2 px-3 py-1.5 text-sm bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-lg font-medium transition-colors">
             <ExternalLink className="w-4 h-4" /> Client Portal
           </button>
-          <button onClick={() => alert('AI Risk Analysis: Project is currently On Track.')} className="flex items-center gap-2 px-3 py-1.5 text-sm bg-orange-100 text-orange-700 hover:bg-orange-200 dark:bg-orange-900/30 dark:text-orange-400 rounded-lg font-medium transition-colors">
+          <button onClick={() => modal.alert("Project is currently On Track. Budget is healthy.", "AI Risk Analysis")} className="flex items-center gap-2 px-3 py-1.5 text-sm bg-orange-100 text-orange-700 hover:bg-orange-200 dark:bg-orange-900/30 dark:text-orange-400 rounded-lg font-medium transition-colors">
             <ShieldAlert className="w-4 h-4" /> Analyze Risk
           </button>
           <button onClick={() => setShowSmartImport(true)} className="flex items-center gap-2 px-3 py-1.5 text-sm bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-400 rounded-lg font-medium transition-colors border border-purple-200 dark:border-purple-800">
             <Sparkles className="w-4 h-4" /> Smart Import (PDF)
           </button>
+          
+          <button onClick={async () => {
+            if (await modal.confirm('Are you sure you want to permanently delete this project? Only Admins can do this.', 'Delete Project')) {
+              const res = await fetch(`/api/projects/${id}`, { method: 'DELETE' });
+              if (res.ok) {
+                await modal.alert('Project deleted successfully.', 'Success');
+                router.push('/dashboard/projects');
+              } else {
+                await modal.alert('Failed to delete project. You might not have permission.', 'Error');
+              }
+            }
+          }} className="flex items-center gap-2 px-3 py-1.5 text-sm bg-red-50 text-red-700 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 rounded-lg font-medium transition-colors border border-red-200 dark:border-red-800/30">
+            <Trash2 className="w-4 h-4" /> Delete Project
+          </button>
           <span className="px-3 py-1 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-sm font-semibold rounded-full capitalize">
+
             {project.status}
           </span>
         </div>
@@ -159,7 +178,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
         {activeTab === "kanban" && <KanbanTab projectId={id} milestones={milestones} onRefresh={fetchProjectData} />}
         {activeTab === "meetings" && <MeetingsTab projectId={id} meetings={meetings} onRefresh={fetchProjectData} />}
         {activeTab === "standups" && <StandupsTab />}
-        {activeTab === "documents" && <DocumentsTab />}
+        {activeTab === "documents" && <DocumentsTab projectId={id} />}
         {activeTab === "calendar" && <CalendarTab milestones={milestones} meetings={meetings} />}
       </div>
 
@@ -319,6 +338,7 @@ function GanttTab({ milestones }: { milestones: any[] }) {
 }
 
 function KanbanTab({ projectId, milestones, onRefresh }: { projectId: string, milestones: any[], onRefresh: () => void }) {
+  const modal = useModal();
   const [showModal, setShowModal] = useState(false);
   
   const handleCreate = async (e: any) => {
@@ -380,7 +400,13 @@ function KanbanTab({ projectId, milestones, onRefresh }: { projectId: string, mi
                 <div key={m.id} className="bg-white dark:bg-slate-900 p-4 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-thread transition-colors group">
                   <div className="flex items-start justify-between mb-2">
                     <h4 className="font-semibold text-sm text-slate-900 dark:text-white group-hover:text-thread transition-colors leading-tight pr-4">{m.title}</h4>
-                    <button onClick={() => { if(confirm('Delete milestone?')) { alert('Milestone deleted!'); onRefresh(); } }} className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-red-500 transition-all rounded">
+                    <button onClick={async () => {
+                    if (await modal.confirm('Are you sure you want to delete this milestone?', 'Delete Milestone')) {
+                      await fetch(`/api/projects/${projectId}/milestones/${m.id}`, { method: 'DELETE' });
+                      await modal.alert('Milestone deleted successfully!', 'Success');
+                      onRefresh();
+                    }
+                  }} className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-red-500 transition-all rounded">
                        <Trash2 size={14} />
                     </button>
                   </div>
@@ -434,6 +460,7 @@ function KanbanTab({ projectId, milestones, onRefresh }: { projectId: string, mi
 }
 
 function MeetingsTab({ projectId, meetings, onRefresh }: { projectId: string, meetings: any[], onRefresh: () => void }) {
+  const modal = useModal();
   const [showModal, setShowModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [analyzingId, setAnalyzingId] = useState<string | null>(null);
@@ -470,9 +497,9 @@ function MeetingsTab({ projectId, meetings, onRefresh }: { projectId: string, me
       });
       if (res.ok) {
         onRefresh();
-        alert("AI successfully generated milestones from the meeting minutes!");
+        modal.alert("AI successfully generated milestones from the meeting minutes!", "Success");
       } else {
-        alert("Failed to analyze. Please check backend logs.");
+        modal.alert("Failed to analyze. Please check backend logs.", "Error");
       }
     } catch (e) {
       console.error(e);
@@ -506,7 +533,13 @@ function MeetingsTab({ projectId, meetings, onRefresh }: { projectId: string, me
                 {m.aiSummary || "No AI insights yet."}
               </span>
               <div className="flex items-center gap-2">
-                <button onClick={() => { if(confirm('Delete meeting?')) { alert('Meeting deleted!'); onRefresh(); } }} className="text-slate-400 hover:text-red-500 transition-colors p-2 rounded">
+                <button onClick={async () => {
+                  if (await modal.confirm('Are you sure you want to delete this meeting?', 'Delete Meeting')) {
+                    await fetch(`/api/projects/${projectId}/meetings/${m.id}`, { method: 'DELETE' });
+                    await modal.alert('Meeting deleted successfully!', 'Success');
+                    onRefresh();
+                  }
+                }} className="text-slate-400 hover:text-red-500 transition-colors p-2 rounded">
                   <Trash2 size={16}/>
                 </button>
                 <button 
@@ -564,18 +597,62 @@ function StandupsTab() {
   );
 }
 
-function DocumentsTab() {
+function DocumentsTab({ projectId }: { projectId: string }) {
+  const [docs, setDocs] = useState<any[]>([]);
+  const modal = useModal();
+  
+  const handleUpload = async (e: any) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Mock saving
+      setDocs(prev => [...prev, { name: file.name, size: (file.size/1024).toFixed(1) + ' KB', date: new Date().toLocaleDateString() }]);
+      await modal.alert('Document "' + file.name + '" uploaded successfully!', 'Upload Success');
+    }
+  };
+
   return (
     <div className="flex flex-col items-center justify-center h-64 border border-slate-200 dark:border-slate-800 rounded-lg text-center p-6 bg-slate-50 dark:bg-slate-900/50">
-      <FileText className="w-12 h-12 text-slate-300 dark:text-slate-600 mb-4" />
-      <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-1">Document Vault</h3>
-      <p className="text-slate-500 dark:text-slate-400 text-sm max-w-sm mb-4">
-        Upload and manage project documentation and assets securely.
-      </p>
-      <label className="px-4 py-2 bg-thread text-white rounded-md text-sm font-medium cursor-pointer hover:bg-red-700 transition-colors">
-        Upload File
-        <input type="file" className="hidden" onChange={(e) => { if(e.target.files && e.target.files[0]) alert('Document "'+e.target.files[0].name+'" uploaded successfully!'); }} />
-      </label>
+      
+      {docs.length > 0 ? (
+        <div className="w-full text-left">
+          <div className="flex justify-between items-center mb-4">
+             <h3 className="font-bold">Uploaded Documents</h3>
+             <label className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-md text-sm font-medium cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                Upload Another
+                <input type="file" className="hidden" onChange={handleUpload} />
+             </label>
+          </div>
+          <div className="space-y-2">
+            {docs.map((d, i) => (
+              <div key={i} className="flex justify-between items-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 rounded-lg">
+                 <div className="flex items-center gap-3">
+                    <FileText className="w-5 h-5 text-purple-500" />
+                    <div>
+                       <p className="font-medium text-sm">{d.name}</p>
+                       <p className="text-xs text-slate-500">{d.size} • {d.date}</p>
+                    </div>
+                 </div>
+                 <button className="text-thread text-sm font-medium hover:underline">Download</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <>
+          <FileText className="w-12 h-12 text-slate-300 dark:text-slate-600 mb-4 mx-auto" />
+          <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-1 text-center">Document Vault</h3>
+          <p className="text-slate-500 dark:text-slate-400 text-sm max-w-sm mb-4 text-center mx-auto">
+            Upload and manage project documentation and assets securely.
+          </p>
+          <div className="text-center">
+            <label className="px-4 py-2 bg-thread text-white rounded-md text-sm font-medium cursor-pointer hover:bg-red-700 transition-colors">
+              Upload File
+              <input type="file" className="hidden" onChange={handleUpload} />
+            </label>
+          </div>
+        </>
+      )}
+
     </div>
   );
 }

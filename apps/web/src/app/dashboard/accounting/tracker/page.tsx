@@ -49,6 +49,26 @@ export default function TrackerPage() {
     } catch (e) {}
   };
 
+  const handleToggleStatus = async (id: string, currentStatus: string) => {
+    const newStatus = currentStatus === 'paid' ? 'unpaid' : 'paid';
+    try {
+      // Optimistically update UI
+      setTransactions(transactions.map(t => t.id === id ? { ...t, status: newStatus } : t));
+      
+      const res = await fetch(`/api/accounting/transactions/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus })
+      });
+      if (!res.ok) {
+        // Revert on failure
+        fetchData();
+      }
+    } catch (e) {
+      fetchData();
+    }
+  };
+
   const filtered = transactions.filter(t => 
     t.description.toLowerCase().includes(search.toLowerCase()) || 
     (t.vendorOrSource && t.vendorOrSource.toLowerCase().includes(search.toLowerCase()))
@@ -163,6 +183,7 @@ export default function TrackerPage() {
                     <th className="px-6 py-3 text-[12px] font-medium text-ink/60 uppercase tracking-wider">Description</th>
                     <th className="px-6 py-3 text-[12px] font-medium text-ink/60 uppercase tracking-wider">Vendor/Source</th>
                     <th className="px-6 py-3 text-[12px] font-medium text-ink/60 uppercase tracking-wider">Category</th>
+                    <th className="px-6 py-3 text-[12px] font-medium text-ink/60 uppercase tracking-wider">Status</th>
                     <th className="px-6 py-3 text-[12px] font-medium text-ink/60 uppercase tracking-wider text-right">Amount</th>
                   </tr>
                 </thead>
@@ -197,6 +218,16 @@ export default function TrackerPage() {
                             {t.categoryName}
                           </span>
                         ) : '-'}
+                      </td>
+                      <td className="px-6 py-4">
+                        <button 
+                          onClick={() => handleToggleStatus(t.id, t.status || 'paid')}
+                          className={`inline-flex items-center px-2 py-0.5 rounded-[4px] text-[12px] font-medium capitalize transition-colors hover:opacity-80 ${
+                            (!t.status || t.status === 'paid') ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
+                          }`}
+                        >
+                          {t.status || 'paid'}
+                        </button>
                       </td>
                       <td className={`px-6 py-4 text-right text-[14px] font-bold ${
                         t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-ink dark:text-white'

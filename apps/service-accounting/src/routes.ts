@@ -1,3 +1,4 @@
+import { GoogleGenAI } from "@google/genai";
 import { createDbClient, accountingSchema, authSchema } from '@cordibase/shared-db';
 import { eq, and } from 'drizzle-orm';
 import dotenv from 'dotenv';
@@ -247,6 +248,7 @@ fastify.post('/api/accounting/transactions', async (request: any, reply: any) =>
     date: body.date ? new Date(body.date) : new Date(),
     categoryId: body.categoryId,
     notes: body.notes,
+    status: body.status || 'paid',
   }).returning();
   return newTx[0];
 });
@@ -272,9 +274,70 @@ fastify.delete('/api/accounting/transactions/:id', async (request: any, reply: a
   return { success: true };
 });
 
-// POST /api/accounting/transactions/scan (AI receipt scanning stub)
+// PATCH /api/accounting/transactions/:id
+fastify.patch('/api/accounting/transactions/:id', async (request: any, reply: any) => {
+  const { id } = request.params;
+  const orgId = request.headers['x-org-id'] || request.activeOrganizationId;
+  const body = request.body as any;
+  
+  const updatedTx = await db.update(accountingSchema.transaction)
+    .set({
+      status: body.status,
+    })
+    .where(and(eq(accountingSchema.transaction.id, id), eq(accountingSchema.transaction.organizationId, orgId as string)))
+    .returning();
+    
+  return updatedTx[0];
+});
+
+// POST /api/accounting/transactions/scan (AI receipt scanning)
 fastify.post('/api/accounting/transactions/scan', async (request: any, reply: any) => {
-  return { success: false, message: 'AI scanning not yet configured' };
+  try {
+    const { imageBase64, mimeType } = request.body;
+    if (!imageBase64) return reply.status(400).send({ error: 'No image provided' });
+    
+    // Fallback if not configured
+    if (!process.env.GEMINI_API_KEY) {
+      return reply.status(500).send({ error: "AI scanning requires GEMINI_API_KEY" });
+    }
+
+    const ai = new GoogleGenAI({});
+    const prompt = `
+You are an expert accountant scanning a receipt.
+Extract the info from this receipt image.
+Return EXACTLY a JSON object with this schema and NO markdown formatting:
+{
+  "vendor_name": "string (name of the store/vendor)",
+  "total_amount": "number (the final total amount, numbers only)",
+  "currency": "string (3 letter code, guess from symbol, default USD)",
+  "date": "string (YYYY-MM-DD)",
+  "description": "string (brief summary of items)",
+  "suggested_category": "string (e.g. 'Office Supplies', 'Software Subscriptions', 'Travel & Transport', 'Meals & Entertainment', 'Utilities', 'Marketing & Advertising', 'Professional Services', 'Rent & Lease', 'Other')"
+}
+`;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: [
+        prompt,
+        {
+          inlineData: {
+            data: imageBase64,
+            mimeType: mimeType || 'image/jpeg'
+          }
+        }
+      ]
+    });
+
+    let text = response.text || "{}";
+    text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+    const extracted = JSON.parse(text);
+
+    return { success: true, extracted };
+  } catch (e: any) {
+    console.error("AI Scan Error:", e);
+    return reply.status(500).send({ error: e.message || "Failed to scan receipt" });
+  }
 });
 
 }
