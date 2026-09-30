@@ -96,7 +96,7 @@ fastify.get('/api/accounting/documents/:id', async (request: any, reply: any) =>
 // POST /api/accounting/documents
 fastify.post('/api/accounting/documents', async (request: any, reply: any) => {
   const orgId = request.headers['x-org-id'] || request.activeOrganizationId;
-  const body = request.body as any; console.log('INCOMING TX BODY:', body); console.log('CATEGORY ID TYPE:', typeof body.categoryId, 'VALUE:', body.categoryId);
+  const body = request.body as any; 
   
   // Use a reference format or fallback
   const refNum = body.refNumber || 'DOC-001';
@@ -160,7 +160,7 @@ fastify.get('/api/accounting/template', async (request: any, reply: any) => {
 // POST /api/accounting/template
 fastify.post('/api/accounting/template', async (request: any, reply: any) => {
   const orgId = request.headers['x-org-id'] || request.activeOrganizationId;
-  const body = request.body as any; console.log('INCOMING TX BODY:', body); console.log('CATEGORY ID TYPE:', typeof body.categoryId, 'VALUE:', body.categoryId);
+  const body = request.body as any; 
   const existing = await db.select().from(accountingSchema.documentTemplate).where(eq(accountingSchema.documentTemplate.organizationId, orgId as string)).limit(1);
   if (existing.length) {
     return (await db.update(accountingSchema.documentTemplate).set(body).where(eq(accountingSchema.documentTemplate.id, existing[0].id)).returning())[0];
@@ -179,7 +179,7 @@ fastify.get('/api/accounting/settings', async (request: any, reply: any) => {
 // POST /api/accounting/settings
 fastify.post('/api/accounting/settings', async (request: any, reply: any) => {
   const orgId = request.headers['x-org-id'] || request.activeOrganizationId;
-  const body = request.body as any; console.log('INCOMING TX BODY:', body); console.log('CATEGORY ID TYPE:', typeof body.categoryId, 'VALUE:', body.categoryId);
+  const body = request.body as any; 
   const existing = await db.select().from(accountingSchema.accountingSettings).where(eq(accountingSchema.accountingSettings.organizationId, orgId as string)).limit(1);
   if (existing.length) {
     return (await db.update(accountingSchema.accountingSettings).set(body).where(eq(accountingSchema.accountingSettings.id, existing[0].id)).returning())[0];
@@ -211,7 +211,7 @@ fastify.get('/api/accounting/categories', async (request: any, reply: any) => {
 // POST /api/accounting/categories
 fastify.post('/api/accounting/categories', async (request: any, reply: any) => {
   const orgId = request.headers['x-org-id'] || request.activeOrganizationId;
-  const body = request.body as any; console.log('INCOMING TX BODY:', body); console.log('CATEGORY ID TYPE:', typeof body.categoryId, 'VALUE:', body.categoryId);
+  const body = request.body as any; 
   const newCat = await db.insert(accountingSchema.transactionCategory).values({
     id: crypto.randomUUID(),
     organizationId: orgId as string,
@@ -236,8 +236,8 @@ fastify.get('/api/accounting/transactions', async (request: any, reply: any) => 
 // POST /api/accounting/transactions
 fastify.post('/api/accounting/transactions', async (request: any, reply: any) => {
   const orgId = request.headers['x-org-id'] || request.activeOrganizationId;
-  const body = request.body as any; console.log('INCOMING TX BODY:', body); console.log('CATEGORY ID TYPE:', typeof body.categoryId, 'VALUE:', body.categoryId);
-  const newTx = await db.insert(accountingSchema.transaction).values({
+  const body = request.body as any; 
+  let validCategoryId = body.categoryId || null; if (validCategoryId) { const existingCat = await db.select({ id: accountingSchema.transactionCategory.id }).from(accountingSchema.transactionCategory).where(and(eq(accountingSchema.transactionCategory.id, validCategoryId), eq(accountingSchema.transactionCategory.organizationId, orgId as string))).limit(1); if (!existingCat.length) { validCategoryId = null; } } const newTx = await db.insert(accountingSchema.transaction).values({
     id: crypto.randomUUID(),
     organizationId: orgId as string,
     type: body.type || 'expense',
@@ -246,7 +246,7 @@ fastify.post('/api/accounting/transactions', async (request: any, reply: any) =>
     vendorOrSource: body.vendorOrSource,
     currency: body.currency || 'KES',
     date: body.date ? new Date(body.date) : new Date(),
-    categoryId: body.categoryId || null,
+    categoryId: validCategoryId,
     notes: body.notes,
     status: body.status || 'paid',
   }).returning();
@@ -278,7 +278,7 @@ fastify.delete('/api/accounting/transactions/:id', async (request: any, reply: a
 fastify.patch('/api/accounting/transactions/:id', async (request: any, reply: any) => {
   const { id } = request.params;
   const orgId = request.headers['x-org-id'] || request.activeOrganizationId;
-  const body = request.body as any; console.log('INCOMING TX BODY:', body); console.log('CATEGORY ID TYPE:', typeof body.categoryId, 'VALUE:', body.categoryId);
+  const body = request.body as any; 
   
   const updatedTx = await db.update(accountingSchema.transaction)
     .set({
