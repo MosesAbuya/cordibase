@@ -38,7 +38,7 @@ export default function AgentWorkspacePage() {
   const params = useParams();
   const router = useRouter();
   const modal = useModal();
-  const ticketId = params.id as string;
+  const ticketId = (params?.id || "") as string;
 
   const [ticket, setTicket] = useState<Ticket | null>(null);
   const [messages, setMessages] = useState<TicketMessage[]>([]);

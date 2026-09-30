@@ -43,7 +43,7 @@ export default function WorkflowBuilderPage() {
   const modal = useModal();
   const params = useParams();
   const router = useRouter();
-  const workflowId = params.id as string;
+  const workflowId = (params?.id || "") as string;
 
   const [workflow, setWorkflow] = useState<Workflow | null>(null);
   const [steps, setSteps] = useState<Step[]>([]);

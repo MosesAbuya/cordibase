@@ -20,7 +20,7 @@ export default function KBEditorPage() {
   const params = useParams();
   const router = useRouter();
   const modal = useModal();
-  const articleId = params.id as string;
+  const articleId = (params?.id || "") as string;
 
   const [article, setArticle] = useState<KBArticle | null>(null);
   const [isLoading, setIsLoading] = useState(true);

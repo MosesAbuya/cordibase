@@ -34,7 +34,7 @@ export default function Dock() {
           {/* Nav links */}
           <div className="flex items-center gap-1">
             {navItems.map(({ label, href }) => {
-              const active = pathname === href || pathname.startsWith(href + "/");
+              const active = (pathname || "") === href || (pathname || "").startsWith(href + "/");
               return (
                 <Link key={href} href={href}
                   className={"px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 " +

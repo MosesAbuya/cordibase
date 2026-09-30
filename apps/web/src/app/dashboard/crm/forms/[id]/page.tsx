@@ -25,7 +25,7 @@ export default function FormBuilderPage() {
   const params = useParams();
   const router = useRouter();
   const modal = useModal();
-  const formId = params.id as string;
+  const formId = (params?.id || "") as string;
 
   const [form, setForm] = useState<WebForm | null>(null);
   const [fields, setFields] = useState<FormField[]>([]);

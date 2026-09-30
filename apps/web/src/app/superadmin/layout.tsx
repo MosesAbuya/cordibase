@@ -32,7 +32,7 @@ export default function SuperadminLayout({ children }: { children: ReactNode }) 
           <nav className="space-y-1 mt-2">
             {navItems.map((item) => {
               const Icon = item.icon;
-              const isActive = pathname === item.href || (item.href !== '/superadmin' && pathname.startsWith(item.href));
+              const isActive = (pathname || "") === item.href || (item.href !== '/superadmin' && (pathname || "").startsWith(item.href));
               
               return (
                 <Link

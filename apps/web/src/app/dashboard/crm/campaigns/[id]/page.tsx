@@ -22,7 +22,7 @@ type MarketingList = {
 export default function CampaignBuilderPage() {
   const params = useParams();
   const router = useRouter();
-  const campaignId = params.id as string;
+  const campaignId = (params?.id || "") as string;
 
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [lists, setLists] = useState<MarketingList[]>([]);

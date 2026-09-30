@@ -110,10 +110,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         })
         .then(res => res.json())
         .then(data => {
-          if (data.redirect && pathname !== data.redirect && !pathname.startsWith(data.redirect)) {
+          if (data.redirect && pathname !== data.redirect && !(pathname || "").startsWith(data.redirect)) {
             // Prevent redirect loop if they are already heading there
             // Only redirect if not already in the target
-            if (data.redirect === '/dashboard/settings/billing' && pathname === '/dashboard/settings/billing') {
+            if (data.redirect === '/dashboard/settings/billing' && (pathname || "") === '/dashboard/settings/billing') {
                return;
             }
             router.push(data.redirect);
@@ -183,8 +183,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           )}
           <nav className="space-y-1 mt-2">
             {navItems.map((item) => {
-              const active = pathname === item.path || pathname.startsWith(`${item.path}/`);
-              const isActive = item.path === "/dashboard" ? pathname === "/dashboard" : active;
+              const active = (pathname || "") === item.path || (pathname || "").startsWith(`${item.path}/`);
+              const isActive = item.path === "/dashboard" ? (pathname || "") === "/dashboard" : active;
               
               return (
                 <Link 
@@ -269,7 +269,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </svg>
             </button>
             <h1 className="text-[20px] font-bold text-ink dark:text-white hidden sm:block">
-              {navItems.find(n => pathname === n.path || pathname.startsWith(`${n.path}/`))?.name || "Dashboard"}
+              {navItems.find(n => (pathname || "") === n.path || (pathname || "").startsWith(`${n.path}/`))?.name || "Dashboard"}
             </h1>
             
             {/* Global Search */}

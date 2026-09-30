@@ -42,7 +42,7 @@ export default function DealDetailPage() {
   const modal = useModal();
   const params = useParams();
   const router = useRouter();
-  const dealId = params.id as string;
+  const dealId = (params?.id || "") as string;
 
   const [deal, setDeal] = useState<Deal | null>(null);
   const [companies, setCompanies] = useState<Company[]>([]);

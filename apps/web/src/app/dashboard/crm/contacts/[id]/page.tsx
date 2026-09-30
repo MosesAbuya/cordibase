@@ -28,7 +28,7 @@ export default function ContactDetailPage() {
   const modal = useModal();
   const params = useParams();
   const router = useRouter();
-  const contactId = params.id as string;
+  const contactId = (params?.id || "") as string;
 
   const [contact, setContact] = useState<Contact | null>(null);
   const [activities, setActivities] = useState<Activity[]>([]);

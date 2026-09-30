@@ -26,7 +26,7 @@ export default function CompanyDetailPage() {
   const modal = useModal();
   const params = useParams();
   const router = useRouter();
-  const companyId = params.id as string;
+  const companyId = (params?.id || "") as string;
 
   const [company, setCompany] = useState<Company | null>(null);
   const [activities, setActivities] = useState<Activity[]>([]);

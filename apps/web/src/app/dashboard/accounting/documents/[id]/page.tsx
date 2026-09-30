@@ -7,7 +7,7 @@ import { ArrowLeft, Download, Trash2, Mail, Printer } from "lucide-react";
 import { useModal } from "@/components/ModalProvider";
 
 export default function DocumentDetail() {
-  const { id } = useParams();
+  const params = useParams(); const id = params?.id;
   const router = useRouter();
   const modal = useModal();
   const [doc, setDoc] = useState<any>(null);
