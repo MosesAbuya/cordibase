@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { scanReceiptWithAI } from "@/app/actions/scan-receipt";
 import Link from "next/link";
 import { ArrowLeft, Save, UploadCloud, Camera, Check, X, Sparkles, Loader2 } from "lucide-react";
 import { useModal } from "@/components/ModalProvider";
@@ -68,40 +69,35 @@ export default function AddTransaction() {
           reader.onerror = error => reject(error);
         });
 
-        const res = await fetch("/api/accounting/transactions/scan", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            imageBase64: base64,
-            mimeType: file.type
-          })
-        });
+        const result = await scanReceiptWithAI(base64, file.type);
+        if (!result.success) {
+          throw new Error(result.error || "Scan failed");
+        }
         
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Scan failed");
+        const extracted = result.extracted;
         
-        if (!data.extracted || Object.keys(data.extracted).length === 0) {
+        if (!extracted || Object.keys(extracted).length === 0) {
           throw new Error("AI could not extract any data from this image. Please try a clearer photo.");
         }
-        setScanResult(data.extracted);
+        setScanResult(extracted);
         
         // Find best category match
         let matchedCategory = null;
-        if (data.extracted?.suggested_category) {
+        if (extracted?.suggested_category) {
            matchedCategory = categories.find((c: any) => 
-             c.name.toLowerCase().includes(data.extracted.suggested_category.toLowerCase()) || 
-             data.extracted.suggested_category.toLowerCase().includes(c.name.toLowerCase())
+             c.name.toLowerCase().includes(extracted.suggested_category.toLowerCase()) || 
+             extracted.suggested_category.toLowerCase().includes(c.name.toLowerCase())
            );
         }
         
         setForm(prev => ({
           ...prev,
           type: "expense", // receipts are usually expenses
-          date: data.extracted?.date || prev.date,
-          amount: data.extracted?.total_amount || "",
-          currency: data.extracted?.currency || prev.currency,
-          description: data.extracted?.description || "",
-          vendorOrSource: data.extracted?.vendor_name || "",
+          date: extracted?.date || prev.date,
+          amount: extracted?.total_amount || "",
+          currency: extracted?.currency || prev.currency,
+          description: extracted?.description || "",
+          vendorOrSource: extracted?.vendor_name || "",
           categoryId: matchedCategory ? matchedCategory.id : "",
           aiExtracted: true
         }));
