@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { scanReceiptWithAI } from "@/app/actions/scan-receipt";
+import { polishTextWithAI } from "@/app/actions/polish-text";
 import Link from "next/link";
 import { ArrowLeft, Save, UploadCloud, Camera, Check, X, Sparkles, Loader2 } from "lucide-react";
 import { useModal } from "@/components/ModalProvider";
@@ -32,6 +33,34 @@ export default function AddTransaction() {
   const [preview, setPreview] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
   const [scanResult, setScanResult] = useState<any>(null);
+
+  const [polishingDesc, setPolishingDesc] = useState(false);
+  const [polishingNotes, setPolishingNotes] = useState(false);
+
+  const handlePolish = async (context: 'description' | 'notes') => {
+    const textToPolish = context === 'description' ? form.description : form.notes;
+    if (!textToPolish) return;
+    
+    if (context === 'description') setPolishingDesc(true);
+    else setPolishingNotes(true);
+
+    try {
+      const res = await polishTextWithAI(textToPolish, context);
+      if (res.success && res.polished) {
+        setForm(prev => ({
+          ...prev,
+          [context]: res.polished
+        }));
+      } else {
+        modal.alert("Polish Error", res.error || "Failed to polish text.");
+      }
+    } catch (e: any) {
+      modal.alert("Error", e.message);
+    } finally {
+      if (context === 'description') setPolishingDesc(false);
+      else setPolishingNotes(false);
+    }
+  };
 
   useEffect(() => {
     fetchCategories();
@@ -240,7 +269,15 @@ export default function AddTransaction() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[13px] font-medium text-[#344054] dark:text-slate-300">Description *</label>
+                  <div className="flex justify-between items-center">
+                    <label className="text-[13px] font-medium text-[#344054] dark:text-slate-300">Description *</label>
+                    {form.description && (
+                      <button type="button" onClick={() => handlePolish('description')} disabled={polishingDesc} className="text-[12px] text-blue-600 hover:text-blue-700 flex items-center bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded transition-colors">
+                        {polishingDesc ? <Loader2 size={12} className="mr-1 animate-spin" /> : <Sparkles size={12} className="mr-1" />}
+                        {polishingDesc ? "Polishing..." : "Polish"}
+                      </button>
+                    )}
+                  </div>
                   <input required type="text" value={form.description} onChange={e => setForm({...form, description: e.target.value})} className="w-full px-3 py-2 border border-ink/10 dark:border-slate-700 rounded-[8px] bg-transparent text-[14px] focus:outline-none focus:ring-2 focus:ring-[#A83C2E]/20 focus:border-thread" placeholder="What was this for?" />
                 </div>
 
@@ -270,7 +307,15 @@ export default function AddTransaction() {
                 </div>
                 
                 <div className="space-y-1.5 md:col-span-2">
-                  <label className="text-[13px] font-medium text-[#344054] dark:text-slate-300">Detailed Notes / Report</label>
+                  <div className="flex justify-between items-center">
+                    <label className="text-[13px] font-medium text-[#344054] dark:text-slate-300">Detailed Notes / Report</label>
+                    {form.notes && (
+                      <button type="button" onClick={() => handlePolish('notes')} disabled={polishingNotes} className="text-[12px] text-blue-600 hover:text-blue-700 flex items-center bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded transition-colors">
+                        {polishingNotes ? <Loader2 size={12} className="mr-1 animate-spin" /> : <Sparkles size={12} className="mr-1" />}
+                        {polishingNotes ? "Polishing..." : "Polish"}
+                      </button>
+                    )}
+                  </div>
                   <textarea value={form.notes || ""} onChange={e => setForm({...form, notes: e.target.value})} rows={4} className="w-full px-3 py-2 border border-ink/10 dark:border-slate-700 rounded-[8px] bg-transparent text-[14px] focus:outline-none focus:ring-2 focus:ring-[#A83C2E]/20 focus:border-thread" placeholder="Add any detailed notes or let AI fill this..."></textarea>
                 </div>
               </div>
