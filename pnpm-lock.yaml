@@ -224,6 +224,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@cordibase/service-monolith':
+        specifier: workspace:*
+        version: link:../service-monolith
       '@cordibase/shared-db':
         specifier: workspace:*
         version: link:../../packages/shared-db
