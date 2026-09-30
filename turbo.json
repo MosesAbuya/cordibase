@@ -5,18 +5,39 @@
   ],
   "tasks": {
     "build": {
-      "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        ".next/**",
+        "!.next/cache/**",
+        "dist/**"
+      ]
     },
     "lint": {
-      "dependsOn": ["^lint"]
+      "dependsOn": [
+        "^lint"
+      ]
     },
     "typecheck": {
-      "dependsOn": ["^typecheck"]
+      "dependsOn": [
+        "^typecheck"
+      ]
     },
     "dev": {
       "cache": false,
       "persistent": true
     }
-  }
+  },
+  "globalEnv": [
+    "DATABASE_URL",
+    "REDIS_URL",
+    "PAYSTACK_SECRET_KEY",
+    "GEMINI_API_KEY",
+    "BETTER_AUTH_SECRET",
+    "BETTER_AUTH_URL",
+    "FRONTEND_URL",
+    "NEXT_PUBLIC_PAYSTACK_KEY",
+    "NEXT_PUBLIC_APP_URL"
+  ]
 }
