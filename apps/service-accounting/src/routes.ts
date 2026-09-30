@@ -203,7 +203,7 @@ fastify.get('/api/accounting/categories', async (request: any, reply: any) => {
     const defaults = type === 'income'
       ? ['Sales', 'Services', 'Consulting', 'Grants', 'Other Income']
       : ['Rent', 'Salaries', 'Utilities', 'Supplies', 'Marketing', 'Travel', 'Other Expense'];
-    return defaults.map((name, i) => ({ id: 'default-' + i, name, type: type || 'expense', organizationId: orgId, isCustom: false }));
+    const insertedCategories = []; for (const name of defaults) { const newCat = await db.insert(accountingSchema.transactionCategory).values({ id: crypto.randomUUID(), organizationId: orgId as string, name, type: type || 'expense', isCustom: false }).returning(); insertedCategories.push(newCat[0]); } return insertedCategories;
   }
   return categories;
 });
