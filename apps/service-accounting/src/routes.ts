@@ -326,12 +326,43 @@ Return EXACTLY a JSON object with this schema and NO markdown formatting:
             mimeType: mimeType || 'image/jpeg'
           }
         }
-      ]
+      ],
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: "OBJECT",
+          properties: {
+             vendor_name: { type: "STRING" },
+             total_amount: { type: "NUMBER" },
+             currency: { type: "STRING" },
+             date: { type: "STRING" },
+             description: { type: "STRING" },
+             suggested_category: { type: "STRING" }
+          },
+          required: ["vendor_name", "total_amount", "currency", "date", "description", "suggested_category"]
+        }
+      }
     });
 
-    let text = response.text || "{}";
+    let text = response.text;
+    if (!text) {
+      console.error("Gemini returned empty text! Full response:", JSON.stringify(response, null, 2));
+      text = "{}";
+    }
+    
     text = text.replace(/```json/g, '').replace(/```/g, '').trim();
-    const extracted = JSON.parse(text);
+    
+    let extracted: any = {};
+    try {
+      extracted = JSON.parse(text);
+    } catch (parseError) {
+      console.error("Failed to parse Gemini output:", text);
+      throw new Error("AI returned invalid data format");
+    }
+    
+    // Ensure it's not totally empty if Gemini failed strictly
+    if (!extracted.vendor_name) extracted.vendor_name = "N/A";
+    if (extracted.total_amount === undefined) extracted.total_amount = 0;
 
     return { success: true, extracted };
   } catch (e: any) {
