@@ -154,7 +154,7 @@ export default function AddTransaction() {
         body: JSON.stringify(form)
       });
       
-      if (!res.ok) throw new Error("Failed to save transaction");
+      if (!res.ok) { const errData = await res.json().catch(() => ({})); throw new Error(errData.message || errData.error || "Failed to save transaction"); }
       
       router.push("/dashboard/accounting/tracker");
     } catch (error: any) {
