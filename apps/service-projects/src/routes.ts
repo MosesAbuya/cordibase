@@ -16,7 +16,7 @@ export default async function routes(fastify: FastifyInstance) {
       return reply.code(401).send({ error: 'Unauthorized - Missing token' });
     }
     try {
-      const coreRes = await fetch((process.env.CORE_SERVICE_INTERNAL_URL || 'http://127.0.0.1:3001') + '/api/auth/get-session', {
+      const coreRes = await fetch((process.env.BETTER_AUTH_URL ? process.env.BETTER_AUTH_URL.replace('/api/auth', '') : (process.env.CORE_SERVICE_INTERNAL_URL || 'http://127.0.0.1:3000')) + '/api/auth/get-session', {
         headers: { 'Cookie': cookieHeader, 'authorization': request.headers['authorization'] || '' }
       });
       if (!coreRes.ok) throw new Error('Invalid session');

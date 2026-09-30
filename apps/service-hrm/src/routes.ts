@@ -33,7 +33,7 @@ fastify.addHook('preHandler', async (request, reply) => {
   }
 
   try {
-    const authRes = await fetch((process.env.CORE_SERVICE_INTERNAL_URL || 'http://127.0.0.1:3001') + '/api/auth/get-session', {
+    const authRes = await fetch((process.env.BETTER_AUTH_URL ? process.env.BETTER_AUTH_URL.replace('/api/auth', '') : (process.env.CORE_SERVICE_INTERNAL_URL || 'http://127.0.0.1:3000')) + '/api/auth/get-session', {
       headers: { cookie: cookieHeader || '' }
     });
     const sessionData = await authRes.json() as any as any;
