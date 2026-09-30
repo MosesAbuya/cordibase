@@ -35,7 +35,7 @@ async function handleRequest(request: NextRequest) {
   // Convert Fastify response headers back to standard Web Headers
   const responseHeaders = new Headers();
   for (const [key, value] of Object.entries(response.headers)) {
-    if (value === undefined) continue;
+    if (value == null) continue;
     if (Array.isArray(value)) {
       value.forEach((v) => responseHeaders.append(key, v.toString()));
     } else {
