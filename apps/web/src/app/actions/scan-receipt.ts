@@ -20,8 +20,9 @@ Return EXACTLY a JSON object with this schema and NO markdown formatting:
   "total_amount": "number (the final total amount, numbers only)",
   "currency": "string (3 letter code, guess from symbol, default USD)",
   "date": "string (YYYY-MM-DD)",
-  "description": "string (brief summary of items)",
-  "suggested_category": "string (e.g. 'Office Supplies', 'Software Subscriptions', 'Travel & Transport', 'Meals & Entertainment', 'Utilities', 'Marketing & Advertising', 'Professional Services', 'Rent & Lease', 'Other')"
+  "description": "string (very brief summary of items for the title)",
+  "suggested_category": "string (e.g. 'Office Supplies', 'Software Subscriptions', 'Travel & Transport', 'Meals & Entertainment', 'Utilities', 'Marketing & Advertising', 'Professional Services', 'Rent & Lease', 'Other')",
+  "notes": "string (A highly detailed report of the receipt. List ALL line items, quantities, individual prices, taxes, tip, date, time, and any other relevant context you find on the receipt.)"
 }
 `;
 
@@ -46,9 +47,10 @@ Return EXACTLY a JSON object with this schema and NO markdown formatting:
              currency: { type: "STRING" },
              date: { type: "STRING" },
              description: { type: "STRING" },
-             suggested_category: { type: "STRING" }
+             suggested_category: { type: "STRING" },
+             notes: { type: "STRING" }
           },
-          required: ["vendor_name", "total_amount", "currency", "date", "description", "suggested_category"]
+          required: ["vendor_name", "total_amount", "currency", "date", "description", "suggested_category", "notes"]
         }
       }
     });

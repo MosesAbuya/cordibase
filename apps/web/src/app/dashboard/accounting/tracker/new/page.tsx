@@ -42,7 +42,7 @@ export default function AddTransaction() {
       const res = await fetch(`/api/accounting/categories?type=${form.type}`);
       if (res.ok) {
         const data = await res.json();
-        setCategories(data.categories || []);
+        setCategories(Array.isArray(data) ? data : (data.categories || []));
       }
     } catch (e) {}
   };
@@ -97,6 +97,7 @@ export default function AddTransaction() {
           amount: extracted?.total_amount || "",
           currency: extracted?.currency || prev.currency,
           description: extracted?.description || "",
+          notes: extracted?.notes || "",
           vendorOrSource: extracted?.vendor_name || "",
           categoryId: matchedCategory ? matchedCategory.id : "",
           aiExtracted: true
@@ -266,6 +267,11 @@ export default function AddTransaction() {
                     <option value="paid">Paid</option>
                     <option value="unpaid">Unpaid</option>
                   </select>
+                </div>
+                
+                <div className="space-y-1.5 md:col-span-2">
+                  <label className="text-[13px] font-medium text-[#344054] dark:text-slate-300">Detailed Notes / Report</label>
+                  <textarea value={form.notes || ""} onChange={e => setForm({...form, notes: e.target.value})} rows={4} className="w-full px-3 py-2 border border-ink/10 dark:border-slate-700 rounded-[8px] bg-transparent text-[14px] focus:outline-none focus:ring-2 focus:ring-[#A83C2E]/20 focus:border-thread" placeholder="Add any detailed notes or let AI fill this..."></textarea>
                 </div>
               </div>
 
