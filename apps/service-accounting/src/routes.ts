@@ -235,22 +235,42 @@ fastify.get('/api/accounting/transactions', async (request: any, reply: any) => 
 
 // POST /api/accounting/transactions
 fastify.post('/api/accounting/transactions', async (request: any, reply: any) => {
-  const orgId = request.headers['x-org-id'] || request.activeOrganizationId;
-  const body = request.body as any; 
-  let validCategoryId = body.categoryId || null; if (validCategoryId) { const existingCat = await db.select({ id: accountingSchema.transactionCategory.id }).from(accountingSchema.transactionCategory).where(and(eq(accountingSchema.transactionCategory.id, validCategoryId), eq(accountingSchema.transactionCategory.organizationId, orgId as string))).limit(1); if (!existingCat.length) { validCategoryId = null; } } const newTx = await db.insert(accountingSchema.transaction).values({
-    id: crypto.randomUUID(),
-    organizationId: orgId as string,
-    type: body.type || 'expense',
-    amount: (parseFloat(body.amount) || 0).toString(),
-    description: body.description || '',
-    vendorOrSource: body.vendorOrSource,
-    currency: body.currency || 'KES',
-    date: body.date ? new Date(body.date) : new Date(),
-    categoryId: validCategoryId,
-    notes: body.notes,
-    status: body.status || 'paid',
-  }).returning();
-  return newTx[0];
+  try {
+    const orgId = request.headers['x-org-id'] || request.activeOrganizationId;
+    const body = request.body as any;
+
+    // Validate categoryId against DB to prevent foreign key violations
+    let validCategoryId: string | null = body.categoryId || null;
+    if (validCategoryId) {
+      const existingCat = await db
+        .select({ id: accountingSchema.transactionCategory.id })
+        .from(accountingSchema.transactionCategory)
+        .where(eq(accountingSchema.transactionCategory.id, validCategoryId))
+        .limit(1);
+      if (!existingCat.length) {
+        validCategoryId = null;
+      }
+    }
+
+    const insertData: any = {
+      id: crypto.randomUUID(),
+      organizationId: orgId as string,
+      type: body.type || 'expense',
+      amount: (parseFloat(body.amount) || 0).toString(),
+      description: body.description || '',
+      vendorOrSource: body.vendorOrSource || null,
+      currency: body.currency || 'KES',
+      date: body.date ? new Date(body.date) : new Date(),
+      categoryId: validCategoryId,
+      notes: body.notes || null,
+    };
+
+    const newTx = await db.insert(accountingSchema.transaction).values(insertData).returning();
+    return newTx[0];
+  } catch (err: any) {
+    request.log.error(err);
+    return reply.status(500).send({ error: err.message });
+  }
 });
 
 // GET /api/accounting/transactions/summary
@@ -278,12 +298,15 @@ fastify.delete('/api/accounting/transactions/:id', async (request: any, reply: a
 fastify.patch('/api/accounting/transactions/:id', async (request: any, reply: any) => {
   const { id } = request.params;
   const orgId = request.headers['x-org-id'] || request.activeOrganizationId;
-  const body = request.body as any; 
+  const body = request.body as any;
+  
+  const setData: any = {};
+  if (body.status !== undefined) setData.status = body.status;
+  if (body.description !== undefined) setData.description = body.description;
+  if (body.notes !== undefined) setData.notes = body.notes;
   
   const updatedTx = await db.update(accountingSchema.transaction)
-    .set({
-      status: body.status,
-    })
+    .set(setData)
     .where(and(eq(accountingSchema.transaction.id, id), eq(accountingSchema.transaction.organizationId, orgId as string)))
     .returning();
     
