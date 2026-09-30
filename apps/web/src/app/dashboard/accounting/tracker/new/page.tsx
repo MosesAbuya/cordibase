@@ -80,6 +80,9 @@ export default function AddTransaction() {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Scan failed");
         
+        if (!data.extracted || Object.keys(data.extracted).length === 0) {
+          throw new Error("AI could not extract any data from this image. Please try a clearer photo.");
+        }
         setScanResult(data.extracted);
         
         // Find best category match
