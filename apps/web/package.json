@@ -27,7 +27,8 @@
     "react-paystack": "^6.0.0",
     "react-quill-new": "^3.8.3",
     "three": "^0.185.1",
-    "uuid": "^14.0.2"
+    "uuid": "^14.0.2",
+    "@cordibase/service-monolith": "workspace:*"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

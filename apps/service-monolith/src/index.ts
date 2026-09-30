@@ -1,6 +1,4 @@
 import Fastify from 'fastify';
-import dotenv from 'dotenv';
-import path from 'path';
 
 import coreRoutes from '@cordibase/service-core/dist/routes';
 import crmRoutes from '@cordibase/service-crm/dist/routes';
@@ -8,30 +6,15 @@ import accountingRoutes from '@cordibase/service-accounting/dist/routes';
 import hrmRoutes from '@cordibase/service-hrm/dist/routes';
 import projectsRoutes from '@cordibase/service-projects/dist/routes';
 
-dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
-
-const fastify = Fastify({ logger: true });
+export const fastifyApp = Fastify({ logger: true, bodyLimit: 10485760 });
 
 // @ts-ignore
-fastify.register(coreRoutes);
+fastifyApp.register(coreRoutes);
 // @ts-ignore
-fastify.register(crmRoutes);
+fastifyApp.register(crmRoutes);
 // @ts-ignore
-fastify.register(accountingRoutes);
+fastifyApp.register(accountingRoutes);
 // @ts-ignore
-fastify.register(hrmRoutes);
+fastifyApp.register(hrmRoutes);
 // @ts-ignore
-fastify.register(projectsRoutes);
-
-const start = async () => {
-  const port = parseInt(process.env.PORT || '3001');
-  process.env.CORE_SERVICE_INTERNAL_URL = 'http://127.0.0.1:' + port;
-  try {
-    await fastify.listen({ port, host: '0.0.0.0' });
-    console.log('Monolith server listening on port ' + port);
-  } catch (err) {
-    fastify.log.error(err);
-    process.exit(1);
-  }
-};
-start();
+fastifyApp.register(projectsRoutes);

@@ -1,42 +1,7 @@
-﻿import type { NextConfig } from "next";
+import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  async rewrites() {
-    const isVercel = process.env.VERCEL === "1";
-    
-    const coreUrl = isVercel ? "https://cordibase-1.onrender.com" : (process.env.CORE_SERVICE_URL || "http://127.0.0.1:3001");
-    const crmUrl = isVercel ? "https://cordibase-1.onrender.com" : (process.env.CRM_SERVICE_URL || "http://127.0.0.1:3002");
-    const accountingUrl = isVercel ? "https://cordibase-1.onrender.com" : (process.env.ACCOUNTING_SERVICE_URL || "http://127.0.0.1:3003");
-    const hrmUrl = isVercel ? "https://cordibase-1.onrender.com" : (process.env.HRM_SERVICE_URL || "http://127.0.0.1:3004");
-    const projectsUrl = isVercel ? "https://cordibase-1.onrender.com" : (process.env.PROJECTS_SERVICE_URL || "http://127.0.0.1:3005");
-
-    return [
-      {
-        source: "/api/auth/:path*",
-        destination: `${coreUrl}/api/auth/:path*`,
-      },
-      {
-        source: "/api/core/:path*",
-        destination: `${coreUrl}/api/core/:path*`,
-      },
-      {
-        source: "/api/crm/:path*",
-        destination: `${crmUrl}/api/crm/:path*`,
-      },
-      {
-        source: "/api/accounting/:path*",
-        destination: `${accountingUrl}/api/accounting/:path*`,
-      },
-      {
-        source: "/api/hrm/:path*",
-        destination: `${hrmUrl}/api/hrm/:path*`,
-      },
-      {
-        source: "/api/projects/:path*",
-        destination: `${projectsUrl}/api/projects/:path*`,
-      },
-    ];
-  },
+  // We no longer need rewrites because we run Fastify natively in Next.js via pages/api!
 };
 
 export default nextConfig;
