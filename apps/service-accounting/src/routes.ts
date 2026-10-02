@@ -286,6 +286,15 @@ fastify.get('/api/accounting/transactions/summary', async (request: any, reply: 
   return { totalIncome, totalExpenses, netPL: totalIncome - totalExpenses };
 });
 
+  // GET /api/accounting/transactions/:id
+  fastify.get('/api/accounting/transactions/:id', async (request: any, reply: any) => {
+    const { id } = request.params;
+    const orgId = request.headers['x-org-id'] || request.activeOrganizationId;
+    const tx = await db.select().from(accountingSchema.transaction).where(and(eq(accountingSchema.transaction.id, id), eq(accountingSchema.transaction.organizationId, orgId as string))).limit(1);
+    if (tx.length === 0) return reply.code(404).send({ error: 'Not found' });
+    return tx[0];
+  });
+
 // DELETE /api/accounting/transactions/:id
 fastify.delete('/api/accounting/transactions/:id', async (request: any, reply: any) => {
   const { id } = request.params;
@@ -301,9 +310,15 @@ fastify.patch('/api/accounting/transactions/:id', async (request: any, reply: an
   const body = request.body as any;
   
   const setData: any = {};
-  if (body.status !== undefined) setData.status = body.status;
-  if (body.description !== undefined) setData.description = body.description;
-  if (body.notes !== undefined) setData.notes = body.notes;
+    if (body.status !== undefined) setData.status = body.status;
+    if (body.description !== undefined) setData.description = body.description;
+    if (body.notes !== undefined) setData.notes = body.notes;
+    if (body.type !== undefined) setData.type = body.type;
+    if (body.amount !== undefined) setData.amount = body.amount;
+    if (body.currency !== undefined) setData.currency = body.currency;
+    if (body.categoryId !== undefined) setData.categoryId = body.categoryId === '' ? null : body.categoryId;
+    if (body.vendorOrSource !== undefined) setData.vendorOrSource = body.vendorOrSource;
+    if (body.date !== undefined) setData.date = new Date(body.date);
   
   const updatedTx = await db.update(accountingSchema.transaction)
     .set(setData)
